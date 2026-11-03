@@ -9,11 +9,11 @@ import {
   type RequestPermissionRequest,
   type SessionId,
 } from "@agentclientprotocol/sdk";
-import type { EditorHostEvent, ResourceEditRequest } from "../../../src/dev/resource-editor/editorTypes";
-import type { ApprovalBroker } from "../policy/ApprovalBroker";
-import type { WorkspacePolicy } from "../policy/WorkspacePolicy";
-import { CodexAgentProcess } from "./CodexAgentProcess";
-import { mapAcpUpdate } from "./eventMapper";
+import type { EditorHostEvent, ResourceEditRequest } from "../../../src/dev/resource-editor/editorTypes.js";
+import type { ApprovalBroker } from "../policy/ApprovalBroker.js";
+import type { WorkspacePolicy } from "../policy/WorkspacePolicy.js";
+import { CodexAgentProcess } from "./CodexAgentProcess.js";
+import { mapAcpUpdate } from "./eventMapper.js";
 
 export interface AcpRunResult {
   readonly sessionId: string;

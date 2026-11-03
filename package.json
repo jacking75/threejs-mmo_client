@@ -12,7 +12,12 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:e2e": "node tools/resource-editor/runPlaywright.mjs",
-    "smoke:acp": "node tools/resource-editor/acp/smoke.mjs"
+    "smoke:acp": "node tools/resource-editor/acp/smoke.mjs",
+    "preview": "vite preview",
+    "dev:network": "vite --mode network --open /?mode=network",
+    "test:perf": "node tools/resource-editor/runPlaywright.mjs --config playwright.perf.config.ts",
+    "check:docs": "node tools/check-docs.mjs",
+    "test:build": "node tools/check-build.mjs"
   },
   "dependencies": {
     "three": "^0.179.1"
@@ -20,14 +25,26 @@
   "devDependencies": {
     "@agentclientprotocol/codex-acp": "1.3.0",
     "@agentclientprotocol/sdk": "1.3.0",
-    "@eslint/js": "^9.33.0",
+    "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.62.1",
     "@types/node": "22.20.1",
     "@types/three": "^0.179.0",
-    "eslint": "^9.33.0",
+    "eslint": "^10.14.0",
     "typescript": "~5.9.2",
-    "typescript-eslint": "^8.39.1",
-    "vite": "^7.1.3",
-    "vitest": "^3.2.4"
+    "typescript-eslint": "^8.72.1",
+    "vite": "^8.3.5",
+    "vitest": "^5.1.0"
+  },
+  "description": "A TypeScript and Three.js learning lab for RPG and MMORPG browser clients",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jacking75/threejs-mmo_client.git"
+  },
+  "engines": {
+    "node": ">=22.14.0"
+  },
+  "overrides": {
+    "minimatch": "^11.0.1"
   }
 }

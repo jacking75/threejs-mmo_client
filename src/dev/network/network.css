@@ -1,0 +1,9 @@
+.network-lab { height: 100vh; display: flex; flex-direction: column; padding: 20px; gap: 12px; color: #e4f3f4; background: #101b26; font: 14px system-ui; box-sizing: border-box; }
+.network-lab h1 { margin: 0; font-size: 24px; }
+.network-lab p { margin: 6px 0; }
+.network-lab nav { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+.network-lab button, .network-lab select { color: #e4f3f4; background: #294353; border: 1px solid #6b959f; border-radius: 5px; padding: 6px; }
+.network-lab label { display: flex; align-items: center; gap: 5px; }
+.network-lab canvas { width: 100%; flex: 1; min-height: 150px; outline-color: #64dbc4; border: 1px solid #375660; }
+.network-lab output { color: #ffda8e; }
+.network-lab a { color: #64dbc4; }

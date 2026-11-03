@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
-import type { EditorHostEvent, ValidationTarget } from "../../../src/dev/resource-editor/editorTypes";
-import type { WorkspacePolicy } from "../policy/WorkspacePolicy";
+import type { EditorHostEvent, ValidationTarget } from "../../../src/dev/resource-editor/editorTypes.js";
+import type { WorkspacePolicy } from "../policy/WorkspacePolicy.js";
 
 export class ValidationRunner {
   public constructor(private readonly policy: WorkspacePolicy, private readonly emit: (event: EditorHostEvent) => void) {}

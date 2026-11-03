@@ -1,5 +1,5 @@
 import type { Plugin } from "vite";
-import { ResourceEditorServer } from "./server";
+import { ResourceEditorServer } from "./server.js";
 
 export function resourceEditorPlugin(options: { readonly fakeAgent?: boolean } = {}): Plugin {
   return {

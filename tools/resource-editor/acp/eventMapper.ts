@@ -1,5 +1,5 @@
 import type { SessionUpdate } from "@agentclientprotocol/sdk";
-import type { EditorHostEvent } from "../../../src/dev/resource-editor/editorTypes";
+import type { EditorHostEvent } from "../../../src/dev/resource-editor/editorTypes.js";
 
 export function mapAcpUpdate(requestId: string, update: SessionUpdate): EditorHostEvent | null {
   if (update.sessionUpdate === "agent_message_chunk" || update.sessionUpdate === "agent_thought_chunk") {

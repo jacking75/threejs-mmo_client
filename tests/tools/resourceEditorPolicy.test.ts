@@ -14,8 +14,8 @@ describe("resource editor workspace policy", () => {
 
   it("검증 명령을 argv registry에서만 만든다", () => {
     const command = policy.validationCommand("focused", ["tests/assets/faunaResources.test.ts"]);
-    expect(command.command).toBe("npm.cmd");
-    expect(command.args.slice(0, 3)).toEqual(["run", "test", "--"]);
+    expect(command.command).toBe(process.execPath);
+    expect(command.args.slice(1, 4)).toEqual(["run", "test", "--"]);
     expect(command.args.at(-1)).toMatch(/faunaResources\.test\.ts$/);
     expect(policy.isAllowedValidationCommand("npm run lint")).toBe(true);
     expect(policy.isAllowedValidationCommand("npm.cmd run test -- tests/assets/faunaResources.test.ts")).toBe(true);

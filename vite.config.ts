@@ -1,11 +1,14 @@
 import { defineConfig } from "vitest/config";
-import { resourceEditorPlugin } from "./tools/resource-editor/vitePlugin";
+import { resourceEditorPlugin } from "./tools/resource-editor/vitePlugin.js";
+import { networkPlugin } from "./tools/network/plugin.js";
 
 export default defineConfig(({ mode }) => ({
-  plugins: mode === "editor" || mode === "editor-test"
-    ? [resourceEditorPlugin({ fakeAgent: mode === "editor-test" })]
-    : [],
-  server: { host: "127.0.0.1", port: 4173 },
+  base: process.env.BASE_PATH || "/",
+  plugins: [
+    ...(mode === "editor" || mode === "editor-test" ? [resourceEditorPlugin({ fakeAgent: mode === "editor-test" })] : []),
+    ...(mode === "network" || mode === "editor-test" ? [networkPlugin()] : []),
+  ],
+  server: { host: "127.0.0.1", port: 4173, strictPort: true, watch: { ignored: ["**/docs_working/**"] } },
   preview: { host: "127.0.0.1", port: 4173 },
   build: {
     chunkSizeWarningLimit: 600,
@@ -21,5 +24,5 @@ export default defineConfig(({ mode }) => ({
       },
     },
   },
-  test: { exclude: ["tests/e2e/**", "node_modules/**", "dist/**"] },
+  test: { exclude: ["tests/e2e/**", "tests/performance/**", "node_modules/**", "dist/**", "docs_working/**"] },
 }));

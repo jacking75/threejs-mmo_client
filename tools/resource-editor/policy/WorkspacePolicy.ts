@@ -4,16 +4,19 @@ import { isAbsolute, relative, resolve, sep } from "node:path";
 export const DEFAULT_WRITE_ROOTS = [
   "src/assets",
   "tests/assets",
-  "docs_working/IMPLEMENTATION_PLAN.md",
-  "working_log.md",
+  "docs/IMPLEMENTATION_PLAN.md",
+  "docs_working/working_log.md",
 ] as const;
 
+// npm provides its actual JS entry on both Windows and POSIX; never spawn a .cmd with shell:false.
+const npmEntry = process.env.npm_execpath ?? resolve("node_modules/npm/bin/npm-cli.js");
+
 export const VALIDATION_COMMANDS = {
-  focused: { command: "npm.cmd", args: ["run", "test", "--"] },
-  lint: { command: "npm.cmd", args: ["run", "lint"] },
-  unit: { command: "npm.cmd", args: ["run", "test"] },
-  build: { command: "npm.cmd", args: ["run", "build"] },
-  e2e: { command: "npm.cmd", args: ["run", "test:e2e"] },
+  focused: { command: process.execPath, args: [npmEntry, "run", "test", "--"] },
+  lint: { command: process.execPath, args: [npmEntry, "run", "lint"] },
+  unit: { command: process.execPath, args: [npmEntry, "run", "test"] },
+  build: { command: process.execPath, args: [npmEntry, "run", "build"] },
+  e2e: { command: process.execPath, args: [npmEntry, "run", "test:e2e"] },
 } as const;
 
 function isWithin(root: string, candidate: string): boolean {

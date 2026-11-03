@@ -21,6 +21,7 @@ import { EquipmentRenderer } from "../render/EquipmentRenderer";
 import { ThirdPersonCamera } from "../render/ThirdPersonCamera";
 import { Hud } from "../ui/Hud";
 import { InventoryPanel } from "../ui/InventoryPanel";
+import { recordRender } from "../dev/performance/diagnostics";
 
 export const FIELD_AVATAR_SCALE = 0.36;
 export const FIELD_CAMERA_FOV = 52;
@@ -155,6 +156,7 @@ export class GameApp {
     this.avatarRenderer?.dispose();
     this.avatarRenderer = null;
     this.field?.dispose();
+    if (import.meta.env.DEV && this.renderer && this.field) recordRender(this.renderer, this.field.scene, 0, true);
     this.field = null;
     this.renderer?.dispose();
     this.renderer = null;
@@ -168,6 +170,7 @@ export class GameApp {
     this.updatePlayer(deltaSeconds);
     this.cameraController.update(deltaSeconds);
     this.renderer.render(this.field.scene, this.cameraController.camera);
+    if (import.meta.env.DEV) recordRender(this.renderer, this.field.scene, deltaSeconds * 1000);
     this.animationFrameId = requestAnimationFrame(this.renderFrame);
   };
 

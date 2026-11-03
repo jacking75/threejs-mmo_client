@@ -5,7 +5,7 @@ import type { AvatarGroup, AvatarOptions, SculptRuntime } from "../types";
 import { adaptImportedAvatar } from "./AvatarAdapter";
 import { createAnimeAvatar } from "./createAnimeAvatar";
 
-const FEMALE_WARRIOR_GLB = "/assets/characters/female-warrior.glb";
+const FEMALE_WARRIOR_GLB = `${import.meta.env.BASE_URL}assets/characters/female-warrior.glb`;
 
 type ImportedAvatarLoader = () => Promise<Pick<GLTF, "scene" | "animations">>;
 

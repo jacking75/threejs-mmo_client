@@ -1,51 +1,23 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
-/node_modules
-/.pnp
-.pnp.js
-
-# testing
-/coverage
-/playwright-report
-/test-results
+﻿# dependencies and generated output
+/node_modules/
+/dist/
+/coverage/
+/playwright-report/
+/test-results/
 /.playwright-cli/
 /.resource-editor-cache/
 
-# next.js
-/.next/
-/out/
-
-# production
-/build
-/dist
-
-# misc
+# local work and tooling
+/docs_working/
+/.agents/
+/working_prompt.md
 .DS_Store
 *.pem
-
-# debug
+*.blend1
+*.tsbuildinfo
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-/docs_working/img2threejs/**/vite.stdout.log
-/docs_working/img2threejs/**/vite.stderr.log
-
-# local agent tooling and diagnostics
-/.agents/
-/docs_working/runtime-diagnostics/
-/working_prompt.md
-
-# Blender automatic backups
-*.blend1
-
-# local env files
-.env*.local
 .env
-
-# vercel
-.vercel
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
+.env.*
+!.env.example

@@ -4,11 +4,11 @@ import { mkdir, writeFile } from "node:fs/promises";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { relative, resolve } from "node:path";
 import { promisify } from "node:util";
-import type { EditorHostEvent, ResourceEditRequest, ValidationTarget } from "../../src/dev/resource-editor/editorTypes";
-import { AcpClient } from "./acp/AcpClient";
-import { ApprovalBroker } from "./policy/ApprovalBroker";
-import { WorkspacePolicy } from "./policy/WorkspacePolicy";
-import { ValidationRunner } from "./validation/ValidationRunner";
+import type { EditorHostEvent, ResourceEditRequest, ValidationTarget } from "../../src/dev/resource-editor/editorTypes.js";
+import { AcpClient } from "./acp/AcpClient.js";
+import { ApprovalBroker } from "./policy/ApprovalBroker.js";
+import { WorkspacePolicy } from "./policy/WorkspacePolicy.js";
+import { ValidationRunner } from "./validation/ValidationRunner.js";
 
 const execFileAsync = promisify(execFile);
 const API_PREFIX = "/api/resource-editor";

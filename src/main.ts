@@ -3,10 +3,13 @@ import "./styles/global.css";
 const mode = new URLSearchParams(window.location.search).get("mode");
 const appMode = mode === "editor" ? "resource-editor" : mode === "gallery" ? "asset-gallery" : "creation";
 
-if (appMode === "resource-editor") {
+if (import.meta.env.DEV && mode === "network") {
+  const { startNetworkLab } = await import("./dev/network/NetworkLab");
+  startNetworkLab();
+} else if (import.meta.env.DEV && appMode === "resource-editor") {
   const { startResourceEditor } = await import("./dev/resource-editor/startResourceEditor");
   startResourceEditor();
-} else if (appMode === "asset-gallery") {
+} else if (import.meta.env.DEV && appMode === "asset-gallery") {
   const { startAssetGallery } = await import("./dev/AssetGallery");
   startAssetGallery();
 } else {

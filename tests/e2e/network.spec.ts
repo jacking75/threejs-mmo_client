@@ -1,9 +1,8 @@
 import { expect, test } from "@playwright/test";
 
-test("two clients move, disconnect, recover and filter interest without duplicate equipment", async ({ browser, request }) => {
-  const a = await browser.newPage(), b = await browser.newPage();
+test("two clients move, disconnect, recover and filter interest without duplicate equipment", async ({ page: a, context, request }) => {
+  const b = await context.newPage();
   const errors: string[] = []; a.on("pageerror", e => errors.push(e.message)); b.on("pageerror", e => errors.push(e.message));
-  try {
     for (const page of [a, b]) { await page.goto("/?mode=network"); await page.locator("#connect").click(); await expect(page.locator("#app")).toHaveAttribute("data-connected", "true"); }
     await expect(a.locator("#app")).toHaveAttribute("data-entities", "2");
     await expect(b.locator("#app")).toHaveAttribute("data-entities", "2");
@@ -20,5 +19,4 @@ test("two clients move, disconnect, recover and filter interest without duplicat
     expect((await request.post("/api/network/join?v=99")).status()).toBe(409);
     expect((await request.post("/api/network/join?v=1", { headers: { Origin: "https://example.org" } })).status()).toBe(403);
     expect(errors).toEqual([]);
-  } finally { await a.close(); await b.close(); }
 });

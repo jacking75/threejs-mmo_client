@@ -2,7 +2,7 @@ import eslint from "@eslint/js";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["dist/**", ".agents/**", "docs_working/img2threejs/**"] },
+  { ignores: ["dist/**", ".agents/**", "docs_working/**", "test-results/**", "playwright-report/**", ".resource-editor-cache/**"] },
   eslint.configs.recommended,
   ...tseslint.configs.strict,
   {

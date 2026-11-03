@@ -111,8 +111,8 @@ export function startNetworkLab(): void {
     }
     marker.visible = true; marker.position.set(own.x, .1, own.z);
   };
-  const frame = (now: number): void => {
-    frameMs = frameMs * .9 + (now - lastFrame) * .1; lastFrame = now;
+  const pump = (): void => {
+    const now = performance.now();
     const epoch = generation;
     if (connected) {
       for (const commands of outbound.drain(now)) void api("input", "POST", commands).catch(error => {
@@ -127,6 +127,10 @@ export function startNetworkLab(): void {
       for (const snapshot of inbound.drain(now)) accept(snapshot, now);
     }
     if (now - meterAt >= 1000) { bandwidth = (bytes - bytesWindow) / ((now - meterAt) / 1000); bytesWindow = bytes; meterAt = now; }
+    publishStatus();
+  };
+  const frame = (now: number): void => {
+    frameMs = frameMs * .9 + (now - lastFrame) * .1; lastFrame = now;
     for (const entity of latest?.entities ?? []) {
       const old = previous?.entities.find(e => e.id === entity.id) ?? entity;
       const position = entity.id === self && checked("prediction") ? predicted : interpolate(old, entity, (now - receivedAt) / sampleInterval);
@@ -139,18 +143,23 @@ export function startNetworkLab(): void {
       renderer.setSize(width, height, false); camera.aspect = width / height; camera.updateProjectionMatrix();
     }
     renderer.render(scene, camera);
+    publishStatus();
+    frameId = requestAnimationFrame(frame);
+  };
+  const publishStatus = (): void => {
     status.textContent = `${message} · tick ${tick} · 객체 ${actors.size} · 미확인 입력 ${pending.length} · 보정 ${correction.toFixed(3)}m · 수신 ${(bandwidth / 1024).toFixed(1)} KiB/s · 프레임 ${frameMs.toFixed(1)}ms`;
     root.dataset.connected = String(connected); root.dataset.entities = String(actors.size); root.dataset.self = self;
     root.dataset.x = predicted.x.toFixed(3); root.dataset.z = predicted.z.toFixed(3); root.dataset.tick = String(tick);
     root.dataset.displayX = (actors.get(self)?.position.x ?? 0).toFixed(3);
     root.dataset.serverX = marker.position.x.toFixed(3);
     root.dataset.correction = correction.toFixed(6);
-    frameId = requestAnimationFrame(frame);
   };
+  // Transport must keep progressing when a background tab stops requesting frames.
+  const transportInterval = setInterval(pump, 25);
   frameId = requestAnimationFrame(frame);
   window.addEventListener("pagehide", () => {
     void fetch(`/api/network/leave?v=${PROTOCOL_VERSION}`, { method: "POST", headers: { "X-Lab-Session": token }, keepalive: true });
-    clearInterval(interval); cancelAnimationFrame(frameId); reset();
+    clearInterval(interval); clearInterval(transportInterval); cancelAnimationFrame(frameId); reset();
     window.removeEventListener("keydown", keyDown); window.removeEventListener("keyup", keyUp); window.removeEventListener("blur", blur);
     disposeObject(scene); grid.geometry.dispose();
     (Array.isArray(grid.material) ? grid.material : [grid.material]).forEach(material => material.dispose()); renderer.dispose();

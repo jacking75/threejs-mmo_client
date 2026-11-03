@@ -3,9 +3,25 @@ import { expect, test } from "@playwright/test";
 test("two clients move, disconnect, recover and filter interest without duplicate equipment", async ({ page: a, context, request }) => {
   const b = await context.newPage();
   const errors: string[] = []; a.on("pageerror", e => errors.push(e.message)); b.on("pageerror", e => errors.push(e.message));
-    for (const page of [a, b]) { await page.goto("/?mode=network"); await page.locator("#connect").click(); await expect(page.locator("#app")).toHaveAttribute("data-connected", "true"); }
+    for (const page of [a, b]) { await page.goto("/?mode=network"); await expect(page.locator("#connect")).toBeVisible(); }
+    for (const page of [a, b]) { await page.locator("#connect").click(); await expect(page.locator("#app")).toHaveAttribute("data-connected", "true"); }
     await expect(a.locator("#app")).toHaveAttribute("data-entities", "2");
     await expect(b.locator("#app")).toHaveAttribute("data-entities", "2");
+    // Background tabs can stop rAF; transport must outlive the server's 3s idle deadline.
+    const suspended = await a.evaluate(async () => {
+      const original = window.requestAnimationFrame;
+      const start = Number(document.querySelector<HTMLElement>("#app")?.dataset.tick);
+      let resume: FrameRequestCallback | undefined;
+      window.requestAnimationFrame = (callback) => { resume = callback; return 0; };
+      await new Promise(resolve => setTimeout(resolve, 3500));
+      const state = document.querySelector<HTMLElement>("#app")?.dataset;
+      const result = { progress: Number(state?.tick) - start, connected: state?.connected, entities: state?.entities };
+      window.requestAnimationFrame = original;
+      if (resume) window.requestAnimationFrame(resume);
+      return result;
+    });
+    expect(suspended.progress).toBeGreaterThan(40);
+    expect(suspended).toMatchObject({ connected: "true", entities: "2" });
     const identity = await a.locator("#app").getAttribute("data-self");
     await a.locator("#latency").selectOption("150"); await a.locator("#faults").check();
     await a.locator("canvas").click(); await a.keyboard.down("KeyD"); await a.waitForTimeout(600); await a.keyboard.up("KeyD");

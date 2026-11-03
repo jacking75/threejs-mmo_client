@@ -58,3 +58,8 @@ GitHub Settings → Pages의 Source를 GitHub Actions로 설정해야 한다.
 패턴 검사는 모든 민감정보의 부재를 증명하지 않는다. 저장소는 이미 공개 상태였으며 파괴적인 이력 재작성은 하지 않았다.
 라이선스 검토는 소유자가 문제가 없다고 확인해 생략했다. 코드 MIT LICENSE는 유지한다.
 개인 제작 자료는 디스크에 보존하며 별도 백업 대상이다.
+
+CI에는 전용 GPU가 없으므로 Chromium의 SwANGLE(`--use-gl=angle --use-angle=swiftshader`) 드라이버를 명시한다.
+960×640 뷰포트, 단일 worker, 최대 120초 테스트로 실제 WebGL 동작을 검증한다. assertion을 제거하거나 재시도로 실패를 숨기지 않는다.
+로컬 성능 보고서는 하드웨어 환경의 별도 실험이며 이 소프트웨어 렌더 결과와 섞지 않는다.
+설정 근거: [Chromium SwiftShader 문서](https://chromium.googlesource.com/chromium/src/+/main/docs/gpu/swiftshader.md).

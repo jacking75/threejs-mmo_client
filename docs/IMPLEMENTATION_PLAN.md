@@ -853,3 +853,7 @@ img2threejs blockout 상태를 우회하지 않고 새 승인 단계를 연 뒤 
 ### CI 환경 재검증 — 2026-11-03
 
 첫 원격 CI의 Ubuntu에서는 2개 WebGL worker가 동시 실행되며 기존 갤러리·플레이어 E2E가 30초 제한에 도달했다. 네트워크와 편집기 검사는 통과했다. 별도 Windows clean checkout에서는 네트워크의 기능 확인이 약 10초에 끝났으나 수동 생성 페이지의 trace 정리가 멈췄다. WebGL E2E는 1 worker/60초로 제한하고 두 페이지를 Playwright context fixture 수명주기로 관리하도록 수정했다. 수정된 네트워크 E2E는 8.2초에 통과했다. assertion을 제거하거나 실패를 재시도로 숨기지 않는다.
+
+### GPU 없는 CI 렌더링 설정 — 2026-11-03
+
+직렬 실행 후 Ubuntu E2E는 통과했다. Windows CI는 갤러리·네트워크·편집기가 통과했지만 플레이어의 새로고침 복원 단계에서 전체 60초 제한에 도달했다. 로컬 GPU 성능과 같은 조건으로 가정하지 않도록 CI 전용 Chromium SwANGLE 소프트웨어 GPU를 명시하고, 960×640 뷰포트·120초 전체/15초 assertion 제한을 적용했다. 게임 로직·시각 assertion은 유지하며 로컬 성능 기준값은 이 CI 설정으로 대체하지 않는다. matrix fail-fast를 끄고 job 상한을 15분으로 설정해 두 OS 결과를 각각 남긴다.

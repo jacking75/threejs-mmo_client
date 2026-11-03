@@ -20,10 +20,8 @@ for (const base of ["/threejs-mmo_client/", "/"]) {
       await new Promise(resolve => setTimeout(resolve, 100));
     }
     if (!ready) throw new Error("Preview did not start");
-    browser = await chromium.launch({ channel: "chrome", headless: true,
-      args: process.env.CI ? ["--use-gl=angle", "--use-angle=swiftshader", "--disable-dev-shm-usage"] : [],
-    });
-    const page = await browser.newPage({ viewport: process.env.CI ? { width: 960, height: 640 } : { width: 1440, height: 900 } });
+    browser = await chromium.launch({ channel: "chrome", headless: true });
+    const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
     const errors = [], glbs = [];
     page.on("pageerror", e => errors.push(e.message));
     page.on("requestfailed", request => errors.push(request.url()));

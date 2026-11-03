@@ -1,10 +1,10 @@
-﻿# 공개 빌드와 검증
+# 공개 빌드와 검증
 
 ## 재현 환경
 
 Node 22.14 이상(권장 24), npm, Google Chrome을 사용한다.
-Windows 로컬 검증과 Ubuntu/Windows GitHub Actions 매트릭스를 제공한다.
-CI의 각 OS 결과가 해당 커밋의 지원 근거다. 로컬에서 실행하지 않은 OS의 통과를 미리 주장하지 않는다.
+Windows에서 로컬 검증한다. 다른 OS의 지원을 검증 없이 주장하지 않는다.
+사용자 요청에 따라 자동 CI는 제공하지 않는다. 명시적으로 요청받기 전에는 추가하거나 실행하지 않는다.
 
 ```sh
 npm ci
@@ -18,7 +18,7 @@ npm run test:e2e
 
 E2E 서버를 띄우기 전에 4173 포트의 개발 서버를 종료한다.
 검증 명령은 셸 문자열 대신 `process.execPath`와 npm CLI의 argv로 실행해 Windows `.cmd` 실행 문제를 피한다.
-CI 실패 시 test-results의 trace/스크린샷을 artifact로 보관한다.
+브라우저 검사 실패 시 test-results에 trace/스크린샷을 보관한다.
 
 ## 의존성
 
@@ -26,10 +26,18 @@ CI 실패 시 test-results의 trace/스크린샷을 artifact로 보관한다.
 나머지 전이 의존성을 수정하고 minimatch 11.0.1 이상을 override했다.
 상위 도구가 이전 minimatch 범위를 유지하고 있어 보안 수정 버전을 명시적으로 사용한다.
 린트·테스트·빌드로 현재 패턴 사용의 호환성을 확인했다. 상위 의존성이 갱신되면 override 제거를 검토한다.
-2026-11-03 npm audit 결과는 0건이다. 결과는 고정 보증이 아니므로 CI에서 매번 다시 검사한다.
+2026-11-03 npm audit 결과는 0건이다. 결과는 고정 보증이 아니므로 의존성을 변경할 때 로컬에서 다시 검사한다.
 [Vitest 마이그레이션 안내](https://vitest.dev/guide/migration/)에 맞춰 Node 최소 버전도 올렸다.
 
 ## 정적 배포
+
+서버 없이 파일을 직접 열려면 `npm run build:standalone`으로 만든 `dist-standalone/index.html`을 사용한다.
+기본 게임의 JS·CSS·GLB가 하나의 HTML에 포함되며 실행할 PC에는 WebGL 2 브라우저만 필요하다.
+Node.js/npm은 제작 단계에서만 사용한다. 개발 도구와 네트워크 실습은 포함하지 않는다.
+`npm run test:standalone`은 Chrome의 네트워크를 끄고 file URL에서 GLB 표시·이동·공격·장착·새로고침 복원을 검사한다.
+생성 HTML은 Git에서 제외하며 소스 변경 후 다시 빌드한다. 다른 PC에 전달할 때는 이 HTML 한 개를 복사한다.
+
+웹 주소로 배포하려면 아래 일반 빌드를 사용한다.
 
 `npm run build`의 dist만 배포한다. 프로덕션에서는 갤러리·편집기·성능 계측·네트워크 실습을 제거한다.
 로컬 ACP 호스트나 Vite 개발 서버를 공개 서버로 사용하지 않는다.
@@ -58,8 +66,3 @@ GitHub Settings → Pages의 Source를 GitHub Actions로 설정해야 한다.
 패턴 검사는 모든 민감정보의 부재를 증명하지 않는다. 저장소는 이미 공개 상태였으며 파괴적인 이력 재작성은 하지 않았다.
 라이선스 검토는 소유자가 문제가 없다고 확인해 생략했다. 코드 MIT LICENSE는 유지한다.
 개인 제작 자료는 디스크에 보존하며 별도 백업 대상이다.
-
-CI에는 전용 GPU가 없으므로 Chromium의 SwANGLE(`--use-gl=angle --use-angle=swiftshader`) 드라이버를 명시한다.
-960×640 뷰포트, 단일 worker, 최대 120초 테스트로 실제 WebGL 동작을 검증한다. assertion을 제거하거나 재시도로 실패를 숨기지 않는다.
-로컬 성능 보고서는 하드웨어 환경의 별도 실험이며 이 소프트웨어 렌더 결과와 섞지 않는다.
-설정 근거: [Chromium SwiftShader 문서](https://chromium.googlesource.com/chromium/src/+/main/docs/gpu/swiftshader.md).

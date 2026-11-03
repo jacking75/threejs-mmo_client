@@ -9,6 +9,8 @@
     "dev:editor:server": "vite --mode editor",
     "dev:editor:test": "vite --mode editor-test",
     "build": "tsc --noEmit && vite build",
+    "build:standalone": "tsc --noEmit && node tools/build-standalone.mjs",
+    "test:standalone": "node tools/check-standalone.mjs",
     "lint": "eslint .",
     "test": "vitest run",
     "test:e2e": "node tools/resource-editor/runPlaywright.mjs",

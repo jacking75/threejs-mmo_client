@@ -205,6 +205,8 @@ export class GameApp {
     if (this.fieldShell) {
       this.fieldShell.dataset.playerX = resolved.x.toFixed(2);
       this.fieldShell.dataset.playerZ = resolved.z.toFixed(2);
+      this.fieldShell.dataset.avatarSource = this.avatarRenderer.avatar.userData.assetSource ?? "unknown";
+      this.fieldShell.dataset.avatarStatus = this.avatarRenderer.avatar.userData.assetStatus ?? "unknown";
     }
 
     if (!this.attackTimeline.active) this.avatarRenderer.face(this.movementDirection, deltaSeconds);

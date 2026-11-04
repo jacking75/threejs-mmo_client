@@ -35,6 +35,12 @@ E2E 설정은 `playwright.config.ts`이고 `channel: "chrome"`을 사용하므�
 
 ## 로컬 Resource Editor
 
+에셋을 보기만 할 때는 저장소에 포함된 [gallery.html](gallery.html)을 브라우저에서 연다. 설치나 빌드는 필요 없다.
+655종 갤러리의 검색·미리보기·회전·확대는 서버 없이 동작한다. HTML 한 개만 다른 PC로 복사할 수 있다.
+변경 사항은 `npm run build:gallery`로 반영하고 생성된 `docs/gallery.html`도 소스와 함께 커밋한다.
+`npm run test:gallery`는 복사된 HTML을 Chrome 오프라인 모드에서 검사한다.
+소스를 수정하며 확인하려면 기존 개발 서버의 `/?mode=gallery`를 사용한다.
+
 `npm run dev:editor`로 로컬 편집기를 연다. 선택한 리소스의 소유 파일, 이름 있는 부품,
 소켓·bounds·collider와 카메라를 확인할 수 있다. Transform 조작은 요청 문맥용 초안이다.
 

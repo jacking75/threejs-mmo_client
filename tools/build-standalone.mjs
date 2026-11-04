@@ -1,8 +1,14 @@
-/* global console, Buffer */
+/* global console, Buffer, process */
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { dirname, resolve } from "node:path";
 import { build } from "vite";
 
+const args = process.argv.slice(2);
+if (args.length > 1 || (args.length === 1 && args[0] !== "--gallery")) {
+  throw new Error("Usage: node tools/build-standalone.mjs [--gallery]");
+}
+const gallery = args[0] === "--gallery";
+const outputPath = gallery ? "docs/gallery.html" : "dist-standalone/index.html";
 const model = readFileSync("public/assets/characters/female-warrior.glb").toString("base64");
 const result = await build({
   configFile: false,
@@ -12,7 +18,11 @@ const result = await build({
     copyPublicDir: false,
     minify: true,
     cssCodeSplit: false,
-    lib: { entry: resolve("src/standalone.ts"), name: "RpgClient", formats: ["iife"] },
+    lib: {
+      entry: resolve(gallery ? "src/gallery-standalone.ts" : "src/standalone.ts"),
+      name: gallery ? "AssetGallery" : "RpgClient",
+      formats: ["iife"],
+    },
   },
 });
 const outputs = (Array.isArray(result) ? result : [result]).flatMap(bundle => bundle.output);
@@ -24,8 +34,9 @@ const css = outputs.filter(output => output.type === "asset" && output.fileName.
   .map(output => String(output.source)).join("\n");
 const script = chunks[0].code.replace(/<\/script/gi, "<\\/script");
 const html = readFileSync("index.html", "utf8")
+  .replace(/<title>.*?<\/title>/, gallery ? "<title>대륙 리소스 도감 · Asset Gallery</title>" : "$&")
   .replace("</head>", () => `<style>${css}</style></head>`)
   .replace('<script type="module" src="/src/main.ts"></script>', () => `<script>${script}</script>`);
-mkdirSync("dist-standalone", { recursive: true });
-writeFileSync("dist-standalone/index.html", html);
-console.log(`Standalone client: ${resolve("dist-standalone/index.html")} (${(Buffer.byteLength(html) / 1024 / 1024).toFixed(2)} MiB)`);
+mkdirSync(dirname(outputPath), { recursive: true });
+writeFileSync(outputPath, html);
+console.log(`Standalone ${gallery ? "gallery" : "client"}: ${resolve(outputPath)} (${(Buffer.byteLength(html) / 1024 / 1024).toFixed(2)} MiB)`);

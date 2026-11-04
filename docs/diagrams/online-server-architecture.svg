@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1320" height="650" viewBox="0 0 1320 650" role="img" aria-labelledby="title description">
+  <title id="title">웹 클라이언트 · 게이트웨이 · 게임 서버 추천 구조</title>
+  <desc id="description">웹 클라이언트는 게이트웨이 서버와 WebSocket으로 양방향 통신합니다. 게이트웨이 서버는 게임 서버와 소켓으로 양방향 통신하며 요청과 응답을 중계합니다. 게임 서버는 게이트웨이를 통해 클라이언트에 게임 상태를 전달합니다.</desc>
+  <defs>
+    <linearGradient id="background" x2="1" y2="1">
+      <stop stop-color="#0b182b"/>
+      <stop offset="1" stop-color="#111c30"/>
+    </linearGradient>
+    <linearGradient id="gateway" x2="0" y2="1">
+      <stop stop-color="#173b48"/>
+      <stop offset="1" stop-color="#112c3b"/>
+    </linearGradient>
+    <marker id="blueArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M1 1 9 5 1 9" fill="none" stroke="#80baff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <marker id="goldArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M1 1 9 5 1 9" fill="none" stroke="#f4c77b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+
+  <rect x="1" y="1" width="1318" height="648" rx="26" fill="url(#background)" stroke="#2a3c54"/>
+  <g font-family="'Malgun Gothic', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif">
+    <rect x="48" y="46" width="5" height="62" rx="2.5" fill="#67dfd0"/>
+    <text x="72" y="61" fill="#81a7c1" font-size="12" font-weight="700" letter-spacing="2.2">ONLINE GAME / RECOMMENDED ARCHITECTURE</text>
+    <text x="70" y="105" fill="#f0f6ff" font-size="33" font-weight="700">웹에서 시작하는 온라인 게임 서버 구조</text>
+    <text x="48" y="150" fill="#a7b9cf" font-size="18">클라이언트 연결과 메시지 중계는 게이트웨이에서, 게임 로직과 상태 처리는 게임 서버에서.</text>
+    <path d="M48 184H1272" stroke="#2a3c54"/>
+
+    <!-- Web client -->
+    <rect x="48" y="224" width="300" height="274" rx="20" fill="#14253d" stroke="#3b5f86"/>
+    <rect x="48" y="244" width="4" height="56" rx="2" fill="#80baff"/>
+    <rect x="74" y="250" width="66" height="66" rx="17" fill="#203e60"/>
+    <g fill="none" stroke="#93c6ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="87" y="267" width="40" height="30" rx="4"/>
+      <path d="M87 277H127M94 272H95M101 272H102M100 304H114M107 297V304"/>
+    </g>
+    <text x="320" y="272" fill="#7d9ab9" font-size="15" font-weight="700" text-anchor="end">01</text>
+    <text x="74" y="357" fill="#f0f6ff" font-size="28" font-weight="700">웹 클라이언트</text>
+    <text x="74" y="388" fill="#8cb9e7" font-size="13" font-weight="700" letter-spacing="1.4">WEB CLIENT</text>
+    <text x="74" y="433" fill="#c1d1e4" font-size="18">사용자 입력 전송</text>
+    <text x="74" y="464" fill="#c1d1e4" font-size="18">게임 상태를 3D 화면에 표시</text>
+
+    <!-- Gateway -->
+    <rect x="510" y="224" width="300" height="274" rx="20" fill="url(#gateway)" stroke="#55b9b0" stroke-width="1.5"/>
+    <rect x="510" y="244" width="4" height="56" rx="2" fill="#67dfd0"/>
+    <rect x="536" y="250" width="66" height="66" rx="17" fill="#205354"/>
+    <g fill="none" stroke="#8cebdd" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="560" y="274" width="18" height="18" rx="5"/>
+      <path d="M550 283H560M578 283H588M569 264V274M569 292V302"/>
+      <circle cx="547" cy="283" r="3"/>
+      <circle cx="591" cy="283" r="3"/>
+      <circle cx="569" cy="261" r="3"/>
+      <circle cx="569" cy="305" r="3"/>
+    </g>
+    <text x="782" y="272" fill="#79b1ad" font-size="15" font-weight="700" text-anchor="end">02</text>
+    <text x="536" y="357" fill="#f0f6ff" font-size="28" font-weight="700">게이트웨이 서버</text>
+    <text x="536" y="388" fill="#80d9ce" font-size="13" font-weight="700" letter-spacing="1.4">GATEWAY SERVER</text>
+    <text x="536" y="433" fill="#c1dedb" font-size="18">클라이언트 연결 관리</text>
+    <text x="536" y="464" fill="#c1dedb" font-size="18">요청과 응답을 양방향 중계</text>
+
+    <!-- Game server -->
+    <rect x="972" y="224" width="300" height="274" rx="20" fill="#2b2934" stroke="#776245"/>
+    <rect x="972" y="244" width="4" height="56" rx="2" fill="#f4c77b"/>
+    <rect x="998" y="250" width="66" height="66" rx="17" fill="#4a3c34"/>
+    <g fill="none" stroke="#f4cf95" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="1013" y="266" width="36" height="14" rx="3"/>
+      <rect x="1013" y="286" width="36" height="14" rx="3"/>
+      <path d="M1020 273H1021M1020 293H1021M1036 273H1042M1036 293H1042"/>
+    </g>
+    <text x="1244" y="272" fill="#b59e81" font-size="15" font-weight="700" text-anchor="end">03</text>
+    <text x="998" y="357" fill="#f0f6ff" font-size="28" font-weight="700">게임 서버</text>
+    <text x="998" y="388" fill="#e4bd85" font-size="13" font-weight="700" letter-spacing="1.4">GAME SERVER</text>
+    <text x="998" y="433" fill="#dfd4c8" font-size="18">입력 검증 · 게임 로직 실행</text>
+    <text x="998" y="464" fill="#dfd4c8" font-size="18">게임 상태와 결과 결정</text>
+
+    <!-- Separate arrows make both directions explicit. -->
+    <g text-anchor="middle">
+      <rect x="365" y="269" width="128" height="34" rx="17" fill="#203e60"/>
+      <text x="429" y="292" fill="#a8d0ff" font-size="16" font-weight="700">WebSocket</text>
+      <text x="429" y="336" fill="#b0c6e0" font-size="15">입력 · 요청</text>
+      <path d="M365 354H491" fill="none" stroke="#80baff" stroke-width="2.5" marker-end="url(#blueArrow)"/>
+      <path d="M493 399H367" fill="none" stroke="#80baff" stroke-width="2.5" marker-end="url(#blueArrow)"/>
+      <text x="429" y="432" fill="#b0c6e0" font-size="15">상태 · 응답</text>
+
+      <rect x="827" y="269" width="128" height="34" rx="17" fill="#493d32"/>
+      <text x="891" y="292" fill="#f4cf95" font-size="16" font-weight="700">소켓 통신</text>
+      <text x="891" y="336" fill="#d9c5aa" font-size="15">입력 · 요청</text>
+      <path d="M827 354H953" fill="none" stroke="#f4c77b" stroke-width="2.5" marker-end="url(#goldArrow)"/>
+      <path d="M955 399H829" fill="none" stroke="#f4c77b" stroke-width="2.5" marker-end="url(#goldArrow)"/>
+      <text x="891" y="432" fill="#d9c5aa" font-size="15">상태 · 응답</text>
+    </g>
+
+    <rect x="48" y="536" width="1224" height="66" rx="14" fill="#0c1728" stroke="#293e52"/>
+    <circle cx="77" cy="569" r="5" fill="#67dfd0"/>
+    <text x="95" y="576" fill="#d3dfef" font-size="19">게임 서버와 클라이언트 사이의 모든 게임 메시지는 게이트웨이를 거쳐 전달됩니다.</text>
+    <text x="1272" y="630" fill="#8299b3" font-size="12" text-anchor="end">THREE.JS RPG CLIENT LAB · 향후 온라인 확장 제안</text>
+  </g>
+</svg>

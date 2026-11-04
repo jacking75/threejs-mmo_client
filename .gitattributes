@@ -1,0 +1,2 @@
+# Generated standalone bundle: retain in Git, summarize instead of diffing minified code and embedded GLB.
+docs/gallery.html -diff linguist-generated=true

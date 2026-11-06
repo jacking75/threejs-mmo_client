@@ -1,7 +1,8 @@
 import type { AssetDefinition } from "../../assets/types";
-import { NEW_ITEM_IDS } from "../../domain/catalog";
+import { NEW_ITEM_IDS, RANGED_WEAPON_IDS } from "../../domain/catalog";
 
 const newItemIds: ReadonlySet<string> = new Set(NEW_ITEM_IDS);
+const rangedWeaponIds: ReadonlySet<string> = new Set(RANGED_WEAPON_IDS);
 
 export interface ResourceOwnership {
   readonly sourceFiles: readonly string[];
@@ -76,6 +77,13 @@ const LEGACY_SOURCE_FILES: Readonly<Record<string, readonly string[]>> = {
 };
 
 export function getResourceOwnership(definition: AssetDefinition): ResourceOwnership {
+  if (rangedWeaponIds.has(definition.id)) {
+    return {
+      sourceFiles: ["src/assets/equipment/createRangedWeapons.ts", "src/assets/equipment/gearGeometry.ts", "src/domain/rangedWeapons.ts"],
+      focusedTests: ["tests/render/rangedWeapons.test.ts", "tests/domain/rangedWeapons.test.ts"],
+      sharedImpact: "플레이어의 지팡이·활 장착과 공격 동작, 착장 미리보기 및 갤러리에 함께 반영된다.",
+    };
+  }
   if (newItemIds.has(definition.id)) {
     const sourceFiles = definition.category === "outfit"
       ? ["src/assets/avatar/createExpandedOutfit.ts", "src/assets/avatar/createAnimeAvatar.ts", "src/assets/avatar/createRuntimeAvatar.ts"]

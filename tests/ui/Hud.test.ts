@@ -4,7 +4,7 @@ import { equipOwnedItem } from "../../src/domain/equipment";
 import { buildHudView } from "../../src/ui/Hud";
 
 describe("buildHudView", () => {
-  it("derives the character identity and equipped sword label from the profile", () => {
+  it("derives the character identity and equipped weapon label from the profile", () => {
     const profile = createDefaultProfile({
       name: "루나",
       body: "feminine",
@@ -15,7 +15,7 @@ describe("buildHudView", () => {
       characterName: "루나",
       classLabel: "마법사",
       classMark: "마",
-      weaponLabel: "장착 검 · 연습용 검",
+      weaponLabel: "장착 무기 · 수습 마법사의 수정봉",
     });
   });
 
@@ -29,7 +29,7 @@ describe("buildHudView", () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
 
-    expect(buildHudView(result.profile).weaponLabel).toBe("장착 검 · 달빛 검");
-    expect(buildHudView(profile).weaponLabel).toBe("장착 검 · 연습용 검");
+    expect(buildHudView(result.profile).weaponLabel).toBe("장착 무기 · 달빛 검");
+    expect(buildHudView(profile).weaponLabel).toBe("장착 무기 · 연습용 검");
   });
 });

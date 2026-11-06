@@ -1,5 +1,7 @@
 import type { CharacterClass, EquipmentSlot, EquippedItems } from "./character";
 import { NEW_ITEM_DEFINITIONS, NEW_ITEM_IDS } from "./expandedItems";
+import { RANGED_WEAPON_DEFINITIONS, RANGED_WEAPON_IDS } from "./rangedWeapons";
+export { RANGED_WEAPON_DEFINITIONS, RANGED_WEAPON_IDS } from "./rangedWeapons";
 export { NEW_ITEM_DEFINITIONS, NEW_ITEM_IDS } from "./expandedItems";
 
 export const ITEM_IDS = [
@@ -13,11 +15,15 @@ export const ITEM_IDS = [
   "head.starter-cap",
   "accessory.none",
   ...NEW_ITEM_IDS,
+  ...RANGED_WEAPON_IDS,
 ] as const;
 
 export type ItemId = (typeof ITEM_IDS)[number];
 
+export type WeaponKind = "sword" | "staff" | "bow";
+
 export interface ItemDefinition {
+  readonly weaponKind?: WeaponKind;
   readonly id: ItemId;
   readonly label: string;
   readonly slot: EquipmentSlot;
@@ -32,6 +38,7 @@ export interface CharacterClassDefinition {
 }
 
 export const ITEM_CATALOG: Readonly<Record<ItemId, ItemDefinition>> = {
+  ...Object.fromEntries(RANGED_WEAPON_DEFINITIONS.map(item => [item.id, item])) as Record<(typeof RANGED_WEAPON_IDS)[number], ItemDefinition>,
   ...Object.fromEntries(NEW_ITEM_DEFINITIONS.map(item => [item.id, item])) as Record<(typeof NEW_ITEM_IDS)[number], ItemDefinition>,
   "weapon.training-sword": { id: "weapon.training-sword", label: "연습용 검", slot: "weapon" },
   "weapon.moon-sword": { id: "weapon.moon-sword", label: "달빛 검", slot: "weapon" },
@@ -59,9 +66,9 @@ export const CLASS_CATALOG: Readonly<Record<CharacterClass, CharacterClassDefini
   mage: {
     id: "mage",
     label: "마법사",
-    description: "남색 로브를 입으며 이번 프로토타입에서는 검 전투를 공유하는 클래스다.",
+    description: "수정 지팡이를 들어 마력을 모으고 전방으로 마법을 시전하는 클래스다.",
     starterEquipment: {
-      weapon: "weapon.training-sword",
+      weapon: "weapon.apprentice-staff",
       outfit: "outfit.mage-starter",
       head: "head.none",
       accessory: null,
@@ -70,9 +77,9 @@ export const CLASS_CATALOG: Readonly<Record<CharacterClass, CharacterClassDefini
   ranger: {
     id: "ranger",
     label: "궁수",
-    description: "녹색 여행복을 입으며 이번 프로토타입에서는 검 전투를 공유하는 클래스다.",
+    description: "활을 들고 시위를 당겨 화살을 발사하는 숲의 궁수 클래스다.",
     starterEquipment: {
-      weapon: "weapon.training-sword",
+      weapon: "weapon.scout-bow",
       outfit: "outfit.ranger-starter",
       head: "head.none",
       accessory: null,
@@ -98,5 +105,11 @@ export function getStartingOwnedItemIds(classId: CharacterClass): readonly ItemI
     "head.starter-cap",
     "accessory.none",
     ...NEW_ITEM_IDS,
+    ...RANGED_WEAPON_IDS,
   ];
+}
+
+/** Animation follows the equipped item, independently of the character class. */
+export function getWeaponKind(itemId: string | null): WeaponKind {
+  return itemId ? getItemDefinition(itemId)?.weaponKind ?? "sword" : "sword";
 }

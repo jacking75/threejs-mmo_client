@@ -4,7 +4,7 @@
 
 Node 22.14 이상(권장 24), npm, Google Chrome을 사용한다.
 Windows에서 로컬 검증한다. 다른 OS의 지원을 검증 없이 주장하지 않는다.
-사용자 요청에 따라 자동 CI는 제공하지 않는다. 명시적으로 요청받기 전에는 추가하거나 실행하지 않는다.
+검증 명령은 로컬에서 수행한다. CI는 제공하지 않는다.
 
 ```sh
 npm ci
@@ -22,11 +22,11 @@ E2E 서버를 띄우기 전에 4173 포트의 개발 서버를 종료한다.
 
 ## 의존성
 
-공개 준비에서 Vite 8.3.5, Vitest 5.1.0, ESLint 10.14.0, typescript-eslint 8.72.1로 갱신했다.
-나머지 전이 의존성을 수정하고 minimatch 11.0.1 이상을 override했다.
+Vite 8, Vitest 5, ESLint 10, typescript-eslint 8을 사용한다.
+전이 의존성 minimatch는 11.0.1 이상을 override한다.
 상위 도구가 이전 minimatch 범위를 유지하고 있어 보안 수정 버전을 명시적으로 사용한다.
 린트·테스트·빌드로 현재 패턴 사용의 호환성을 확인했다. 상위 의존성이 갱신되면 override 제거를 검토한다.
-2026-11-03 npm audit 결과는 0건이다. 결과는 고정 보증이 아니므로 의존성을 변경할 때 로컬에서 다시 검사한다.
+의존성을 변경할 때 `npm audit`와 로컬 검사를 다시 수행한다.
 [Vitest 마이그레이션 안내](https://vitest.dev/guide/migration/)에 맞춰 Node 최소 버전도 올렸다.
 
 ## 정적 배포
@@ -39,7 +39,7 @@ Node.js/npm은 제작 단계에서만 사용한다. 개발 도구와 네트워�
 
 갤러리는 `npm run build:gallery`로 `docs/gallery.html`을 별도로 생성하고 Git으로 관리한다.
 저장소를 받은 PC에서는 빌드 없이 이 파일을 열 수 있다. 갤러리 소스를 변경하면 재생성한 HTML도 함께 커밋한다.
-655종 리소스의 코드·스타일·캐릭터 GLB를 포함하며 서버 없이 카테고리·검색·3D 미리보기를 제공한다.
+705종 리소스의 코드·스타일·캐릭터 GLB를 포함하며 서버 없이 카테고리·검색·3D 미리보기를 제공한다.
 `npm run test:gallery`는 HTML 하나를 다른 폴더로 복사해 Chrome 오프라인 모드에서 검사한다.
 게임과 갤러리 빌드는 서로의 HTML을 덮어쓰지 않는다. 갤러리 HTML에 편집기 호스트나 네트워크 API는 포함하지 않는다.
 
@@ -60,15 +60,4 @@ npm run preview
 
 POSIX 셸에서는 `BASE_PATH=/threejs-mmo_client/ npm run build`를 사용한다.
 브라우저에서 생성→GLB 요청→필드→새로고침을 검사한다. `vite preview`는 로컬 확인용이다.
-공개 데모는 `.github/workflows/pages.yml`을 수동 실행해 배포할 수 있다.
-GitHub Settings → Pages의 Source를 GitHub Actions로 설정해야 한다.
-실제 배포가 성공하기 전에는 README에 작동하는 데모라고 표시하지 않는다.
 [Vite 정적 배포 안내](https://vite.dev/guide/static-deploy.html)를 참고한다.
-
-## 이력과 로컬 자료
-
-현재 트리의 docs_working은 Git에서 제외되지만 과거 커밋에는 제작 자료가 남는다.
-2026-11-03 원격을 갱신한 뒤 모든 브랜치·태그의 11개 커밋에서 AWS/GitHub/OpenAI 키 및 개인키 헤더 패턴을 검색했고 일치 항목은 없었다.
-패턴 검사는 모든 민감정보의 부재를 증명하지 않는다. 저장소는 이미 공개 상태였으며 파괴적인 이력 재작성은 하지 않았다.
-라이선스 검토는 소유자가 문제가 없다고 확인해 생략했다. 코드 MIT LICENSE는 유지한다.
-개인 제작 자료는 디스크에 보존하며 별도 백업 대상이다.

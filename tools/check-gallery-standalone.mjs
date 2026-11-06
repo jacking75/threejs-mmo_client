@@ -26,7 +26,7 @@ try {
   mkdirSync(captures, { recursive: true });
   await page.screenshot({ path: `${captures}/avatar.png` });
 
-  const counts = { avatar: 6, npc: 72, fauna: 208, creature: 96, equipment: 203, world: 100 };
+  const counts = { avatar: 6, npc: 72, fauna: 208, creature: 96, equipment: 223, world: 100 };
   for (const [category, count] of Object.entries(counts)) {
     await page.locator(`[data-category="${category}"]`).click();
     await expect(page.locator("#asset-list button")).toHaveCount(count);
@@ -62,7 +62,7 @@ try {
   assert.deepEqual(external, [], "Gallery must not request HTTP resources");
   assert.deepEqual(failed, []);
   assert.deepEqual(errors, []);
-  console.log(JSON.stringify({ offline: true, copiedHtml: true, assets: 685, model: "blender-glb", externalRequests: 0, gallery: "passed" }));
+  console.log(JSON.stringify({ offline: true, copiedHtml: true, assets: 705, model: "blender-glb", externalRequests: 0, gallery: "passed" }));
 } finally {
   await browser.close();
   rmSync(directory, { recursive: true, force: true });

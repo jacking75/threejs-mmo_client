@@ -1,0 +1,60 @@
+﻿import { Group, Mesh, Vector3, Quaternion } from "three";
+import { describe, expect, it, vi } from "vitest";
+import { createDefaultProfile } from "../../src/domain/character";
+import { AvatarRenderer } from "../../src/render/AvatarRenderer";
+import { EquipmentRenderer } from "../../src/render/EquipmentRenderer";
+
+describe("released weapon effects", () => {
+  it.each(["mage", "ranger"] as const)("keeps %s projectiles fixed in the world and lets their afterglow expire", (classId) => {
+    const scene = new Group();
+    const player = new Group();
+    scene.add(player);
+    const profile = createDefaultProfile({ name: "Effect test", body: "masculine", classId });
+    const avatar = new AvatarRenderer(player, profile, { visualScale: 0.36 });
+    const equipment = new EquipmentRenderer(avatar.avatar);
+    equipment.sync(profile);
+    const effect = player.getObjectByName("weapon.cast-effect");
+    expect(effect).toBeDefined();
+    expect(effect?.visible).toBe(false);
+    avatar.update(0.016, 0, "attack_1", 0.35);
+    expect(avatar.effectPhase).toBe("charge");
+    avatar.update(0.016, 0, "attack_1", 0.7);
+    expect(avatar.effectPhase).toBe("flight");
+    const position = effect?.getWorldPosition(new Vector3());
+    const rotation = effect?.getWorldQuaternion(new Quaternion());
+    player.position.set(4, 2, -3);
+    player.rotation.y = 1.2;
+    avatar.update(0.016, 0, "attack_1", 0.8);
+    expect(effect?.getWorldPosition(new Vector3()).distanceTo(position ?? new Vector3())).toBeLessThan(0.00001);
+    expect(effect?.getWorldQuaternion(new Quaternion()).angleTo(rotation ?? new Quaternion())).toBeLessThan(0.00001);
+    avatar.update(0.016, 0, "idle");
+    expect(avatar.effectPhase).toBe("burst");
+    expect(effect?.visible).toBe(true);
+    avatar.update(1, 0, "idle");
+    expect(avatar.effectPhase).toBe("idle");
+    expect(effect?.visible).toBe(false);
+    equipment.dispose();
+    avatar.dispose();
+    expect(player.children).toHaveLength(0);
+  });
+
+  it("reuses the selected effect and disposes its geometry on equipment changes", () => {
+    const parent = new Group();
+    const profile = createDefaultProfile({ name: "Effect test", body: "masculine", classId: "mage" });
+    const avatar = new AvatarRenderer(parent, profile);
+    const effect = parent.getObjectByName("weapon.cast-effect");
+    const geometrySpies: ReturnType<typeof vi.spyOn>[] = [];
+    effect?.traverse(node => { if (node instanceof Mesh) geometrySpies.push(vi.spyOn(node.geometry, "dispose")); });
+    avatar.setWeapon(profile.equipped.weapon);
+    expect(parent.getObjectByName("weapon.cast-effect")).toBe(effect);
+    avatar.setWeapon("weapon.storm-bow");
+    expect(effect?.parent).toBe(null);
+    expect(geometrySpies.length).toBeGreaterThan(0);
+    geometrySpies.forEach(spy => expect(spy).toHaveBeenCalled());
+    expect(avatar.attackEffectName).not.toBe("");
+    avatar.setWeapon("weapon.training-sword");
+    expect(parent.getObjectByName("weapon.cast-effect")).toBeUndefined();
+    expect(avatar.attackEffectName).toBe("");
+    avatar.dispose();
+  });
+});

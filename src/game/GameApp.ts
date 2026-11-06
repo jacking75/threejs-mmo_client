@@ -1,12 +1,14 @@
 import * as THREE from "three";
 import "../styles/game-ui.css";
 import type { CharacterProfile } from "../domain/character";
+import { getWeaponKind } from "../domain/catalog";
 import { equipOwnedItems } from "../domain/equipment";
 import { CharacterPreview } from "../render/CharacterPreview";
 import {
   advanceAttack,
   createAttackTimeline,
   getAttackProgress,
+  getAttackDuration,
   isAttackMovementLocked,
   selectAnimationState,
   startAttack,
@@ -191,7 +193,7 @@ export class GameApp {
         if (this.fieldShell) this.fieldShell.dataset.attackCount = String(this.attackCount);
       }
     }
-    this.attackTimeline = advanceAttack(this.attackTimeline, deltaSeconds);
+    this.attackTimeline = advanceAttack(this.attackTimeline, deltaSeconds, getAttackDuration(getWeaponKind(this.profile.equipped.weapon)));
 
     const input = this.inventoryOpen
       ? { forward: 0, right: 0, sprint: false }
@@ -213,6 +215,8 @@ export class GameApp {
       this.fieldShell.dataset.playerY = current.y.toFixed(3);
       this.fieldShell.dataset.playerX = resolved.x.toFixed(2);
       this.fieldShell.dataset.playerZ = resolved.z.toFixed(2);
+      this.fieldShell.dataset.weaponKind = getWeaponKind(this.profile.equipped.weapon);
+      this.fieldShell.dataset.attackProgress = getAttackProgress(this.attackTimeline, getAttackDuration(getWeaponKind(this.profile.equipped.weapon))).toFixed(3);
       this.fieldShell.dataset.avatarSource = this.avatarRenderer.avatar.userData.assetSource ?? "unknown";
       this.fieldShell.dataset.avatarStatus = this.avatarRenderer.avatar.userData.assetStatus ?? "unknown";
     }
@@ -235,14 +239,20 @@ export class GameApp {
       deltaSeconds,
       this.clock.elapsedTime,
       state,
-      getAttackProgress(this.attackTimeline),
+      getAttackProgress(this.attackTimeline, getAttackDuration(getWeaponKind(this.profile.equipped.weapon))),
     );
+    if (this.fieldShell) {
+      this.fieldShell.dataset.attackEffect = this.avatarRenderer.attackEffectName;
+      this.fieldShell.dataset.effectPhase = this.avatarRenderer.effectPhase;
+      this.fieldShell.dataset.effectProgress = this.avatarRenderer.effectProgress.toFixed(3);
+    }
   }
 
   private readonly handleApplyEquipment = (itemIds: readonly string[]): boolean => {
     const result = equipOwnedItems(this.profile, itemIds);
     if (!result.ok || !this.onProfileChange(result.profile)) return false;
     this.profile = result.profile;
+    this.avatarRenderer?.setWeapon(this.profile.equipped.weapon);
     this.equipmentRenderer?.sync(this.profile);
     this.hud?.updateProfile(this.profile);
     return true;

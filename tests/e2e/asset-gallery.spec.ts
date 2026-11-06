@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("MMORPG 리소스 685종을 검색하고 WebGL 다각도로 미리 본다", async ({ page }, testInfo) => {
+test("MMORPG 리소스 705종을 검색하고 WebGL 다각도로 미리 본다", async ({ page }, testInfo) => {
   const consoleErrors: string[] = [];
   const pageErrors: string[] = [];
   const failedRequests: string[] = [];
@@ -60,8 +60,8 @@ test("MMORPG 리소스 685종을 검색하고 WebGL 다각도로 미리 본다",
   await expect(page.locator("#asset-name")).toContainText("대장장이");
   await page.locator(".viewport-wrap").screenshot({ path: testInfo.outputPath("gallery-npc-blacksmith.png") });
 
-  await page.getByRole("button", { name: /아이템 203/ }).click();
-  await expect(page.locator("#asset-list button")).toHaveCount(203);
+  await page.getByRole("button", { name: /아이템 223/ }).click();
+  await expect(page.locator("#asset-list button")).toHaveCount(223);
   await page.getByPlaceholder("이름, ID, 태그").fill("왕실 판금 갑옷");
   await expect(page.locator("#asset-list button")).toHaveCount(1);
   await page.locator("#asset-list button").click();

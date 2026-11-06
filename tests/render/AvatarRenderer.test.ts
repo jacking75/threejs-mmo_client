@@ -1,7 +1,8 @@
 import { Box3, Group, Vector3 } from "three";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createAnimeAvatar } from "../../src/assets/avatar/createAnimeAvatar";
 import { createDefaultProfile } from "../../src/domain/character";
+import { EquipmentRenderer } from "../../src/render/EquipmentRenderer";
 import { AvatarRenderer } from "../../src/render/AvatarRenderer";
 
 describe("AvatarRenderer", () => {
@@ -30,6 +31,33 @@ describe("AvatarRenderer", () => {
 
     renderer.dispose();
     expect(parent.children).not.toContain(renderer.avatar);
+  });
+
+  it.each(["warrior", "mage", "ranger"] as const)("keeps %s attacks deterministic and restores the rest pose", (classId) => {
+    const profile = createDefaultProfile({ name: "????", body: "masculine", classId });
+    const renderer = new AvatarRenderer(new Group(), profile);
+    const equipment = new EquipmentRenderer(renderer.avatar);
+    equipment.sync(profile);
+    const hand = renderer.avatar.userData.sculptRuntime.nodes["hand.R"];
+    const arm = renderer.avatar.userData.sculptRuntime.nodes["arm.R.upper"];
+    renderer.avatar.updateMatrixWorld(true);
+    const rest = hand.getWorldPosition(new Vector3());
+    const importedUpdate = vi.fn(() => true);
+    const stop = vi.fn();
+    renderer.avatar.userData.animationRuntime = { clipNames: ["attack"], update: importedUpdate, stop, dispose: vi.fn() };
+    renderer.update(1 / 30, 0, "attack_1", 0.48);
+    const first = arm.quaternion.clone();
+    renderer.avatar.updateMatrixWorld(true);
+    expect(hand.getWorldPosition(new Vector3()).distanceTo(rest)).toBeGreaterThan(0.2);
+    renderer.update(1 / 144, 0, "attack_1", 0.48);
+    expect(arm.quaternion.angleTo(first)).toBeLessThan(0.00001);
+    expect(importedUpdate).not.toHaveBeenCalled();
+    expect(stop).toHaveBeenCalled();
+    renderer.update(0, 0, "idle");
+    renderer.avatar.updateMatrixWorld(true);
+    expect(hand.getWorldPosition(new Vector3()).distanceTo(rest)).toBeLessThan(0.00001);
+    equipment.dispose();
+    renderer.dispose();
   });
 
   it("scales only the field avatar to a human-sized world footprint", () => {

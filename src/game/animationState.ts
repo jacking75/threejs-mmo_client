@@ -1,7 +1,12 @@
+import type { WeaponKind } from "../domain/catalog";
 export type LocomotionState = "idle" | "run" | "sprint";
 export type AnimationState = LocomotionState | "attack_1";
 
 export const ATTACK_DURATION_SECONDS = 0.72;
+export function getAttackDuration(kind: WeaponKind): number {
+  return kind === "bow" ? 1.15 : kind === "staff" ? 1.1 : ATTACK_DURATION_SECONDS;
+}
+
 export const ATTACK_COOLDOWN_SECONDS = 0.28;
 export const ATTACK_MOVEMENT_LOCK_SECONDS = 0.16;
 
@@ -43,7 +48,7 @@ export function startAttack(timeline: AttackTimeline): AttackStartResult {
   };
 }
 
-export function advanceAttack(timeline: AttackTimeline, deltaSeconds: number): AttackTimeline {
+export function advanceAttack(timeline: AttackTimeline, deltaSeconds: number, duration = ATTACK_DURATION_SECONDS): AttackTimeline {
   const delta = Math.max(deltaSeconds, 0);
   if (!timeline.active) {
     return {
@@ -53,21 +58,21 @@ export function advanceAttack(timeline: AttackTimeline, deltaSeconds: number): A
   }
 
   const elapsedSeconds = timeline.elapsedSeconds + delta;
-  if (elapsedSeconds < ATTACK_DURATION_SECONDS) {
+  if (elapsedSeconds < duration) {
     return { ...timeline, elapsedSeconds };
   }
 
-  const overflow = elapsedSeconds - ATTACK_DURATION_SECONDS;
+  const overflow = elapsedSeconds - duration;
   return {
     active: false,
-    elapsedSeconds: ATTACK_DURATION_SECONDS,
+    elapsedSeconds: duration,
     cooldownSeconds: Math.max(0, ATTACK_COOLDOWN_SECONDS - overflow),
   };
 }
 
-export function getAttackProgress(timeline: AttackTimeline): number {
+export function getAttackProgress(timeline: AttackTimeline, duration = ATTACK_DURATION_SECONDS): number {
   if (!timeline.active) return 0;
-  return Math.min(timeline.elapsedSeconds / ATTACK_DURATION_SECONDS, 1);
+  return Math.min(timeline.elapsedSeconds / duration, 1);
 }
 
 export function isAttackMovementLocked(timeline: AttackTimeline): boolean {

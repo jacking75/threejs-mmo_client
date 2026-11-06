@@ -38,12 +38,12 @@ describe("asset catalog", () => {
     expect(legacyEquipmentAssets).toHaveLength(5);
     expect(npcAssets).toHaveLength(72);
     expect(playerItemAssets).toHaveLength(168);
-    expect(equipmentAssets).toHaveLength(203);
+    expect(equipmentAssets).toHaveLength(223);
     expect(faunaAssets).toHaveLength(208);
     expect(creatureAssets).toHaveLength(96);
     expect(worldPropAssets).toHaveLength(96);
     expect(fieldAssets).toHaveLength(4);
-    expect(assetCatalog).toHaveLength(685);
+    expect(assetCatalog).toHaveLength(705);
     expect(new Set(assetCatalog.map(({ id }) => id)).size).toBe(assetCatalog.length);
   });
 });

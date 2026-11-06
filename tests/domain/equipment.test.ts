@@ -5,14 +5,14 @@ import { equipOwnedItem, equipOwnedItems } from "../../src/domain/equipment";
 
 describe("character profile", () => {
   it.each([
-    ["warrior", "outfit.warrior-starter"],
-    ["mage", "outfit.mage-starter"],
-    ["ranger", "outfit.ranger-starter"],
-  ] as const)("derives the documented %s starting equipment", (classId, outfitId) => {
+    ["warrior", "outfit.warrior-starter", "weapon.training-sword"],
+    ["mage", "outfit.mage-starter", "weapon.apprentice-staff"],
+    ["ranger", "outfit.ranger-starter", "weapon.scout-bow"],
+  ] as const)("derives the documented %s starting equipment", (classId, outfitId, weaponId) => {
     const profile = createDefaultProfile({ name: "별빛", body: "feminine", classId });
 
     expect(profile.equipped).toEqual({
-      weapon: "weapon.training-sword",
+      weapon: weaponId,
       outfit: outfitId,
       head: "head.none",
       accessory: null,
@@ -46,11 +46,11 @@ describe("equipOwnedItem", () => {
     const profile = createDefaultProfile({ name: "루나", body: "feminine", classId: "mage" });
     const failed = equipOwnedItems(profile, ["weapon.moon-sword", "outfit.warrior-starter"]);
     expect(failed).toEqual({ ok: false, profile, reason: "item-not-owned" });
-    expect(failed.profile.equipped.weapon).toBe("weapon.training-sword");
+    expect(failed.profile.equipped.weapon).toBe("weapon.apprentice-staff");
     const success = equipOwnedItems(profile, ["weapon.moon-sword", "outfit.traveler", "head.starter-cap"]);
     expect(success.ok).toBe(true);
     expect(success.profile.equipped).toEqual({ weapon: "weapon.moon-sword", outfit: "outfit.traveler", head: "head.starter-cap", accessory: null });
-    expect(profile.equipped.weapon).toBe("weapon.training-sword");
+    expect(profile.equipped.weapon).toBe("weapon.apprentice-staff");
   });
   it("rejects an item the character does not own", () => {
     const profile = createDefaultProfile({ name: "루나", body: "feminine", classId: "mage" });
@@ -80,7 +80,7 @@ describe("equipOwnedItem", () => {
     expect(outfitResult.ok).toBe(true);
     if (!outfitResult.ok) return;
     expect(outfitResult.profile.equipped).toEqual({
-      weapon: "weapon.training-sword",
+      weapon: "weapon.scout-bow",
       outfit: "outfit.traveler",
       head: "head.none",
       accessory: null,

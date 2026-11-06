@@ -6,11 +6,13 @@ import {
 import { applyImportedOutfit } from "../assets/avatar/createRuntimeAvatar";
 import { createStarterCap } from "../assets/equipment/createHeadEquipment";
 import { createMoonSword, createTrainingSword } from "../assets/equipment/createSword";
+import { RANGED_WEAPON_FACTORIES } from "../assets/equipment/createRangedWeapons";
 import { DISTINCT_WEAPON_FACTORIES } from "../assets/equipment/createDistinctWeapons";
 import { DISTINCT_HEAD_FACTORIES } from "../assets/equipment/createDistinctHeadwear";
 import { ACCESSORY_SOCKETS, DISTINCT_ACCESSORY_FACTORIES } from "../assets/equipment/createDistinctAccessories";
 import { isAvatarOutfitId } from "../assets/types";
 import type { AvatarGroup } from "../assets/types";
+import { getWeaponKind } from "../domain/catalog";
 import type { CharacterProfile, EquipmentSlot } from "../domain/character";
 
 type AttachedSlot = "weapon" | "head" | "accessory";
@@ -29,6 +31,8 @@ const createEmptyHead = (): THREE.Group => {
 };
 
 export const EQUIPMENT_VISUALS: Readonly<Record<string, EquipmentVisual>> = {
+  ...Object.fromEntries(Object.entries(RANGED_WEAPON_FACTORIES).map(([itemId, create]) =>
+    [itemId, { itemId, slot: "weapon" as const, create, socket: getWeaponKind(itemId) === "bow" ? "hand.L" as const : "hand.R" as const }])),
   ...Object.fromEntries(Object.entries(DISTINCT_WEAPON_FACTORIES).map(([itemId, create]) =>
     [itemId, { itemId, slot: "weapon" as const, create }])),
   ...Object.fromEntries(Object.entries(DISTINCT_HEAD_FACTORIES).map(([itemId, create]) =>
@@ -76,12 +80,18 @@ export class EquipmentRenderer {
   }
 
   public sync(profile: CharacterProfile): void {
-    this.syncAttachedVisual("weapon", profile.equipped.weapon, this.handSocket);
+    const weaponSocket = profile.equipped.weapon ? EQUIPMENT_VISUALS[profile.equipped.weapon]?.socket : undefined;
+    this.syncAttachedVisual("weapon", profile.equipped.weapon,
+      weaponSocket === "hand.L" ? this.avatar.userData.sculptRuntime.sockets["hand.L"] : this.handSocket);
     this.syncAttachedVisual("head", profile.equipped.head, this.headSocket);
     const accessoryId = profile.equipped.accessory;
     const accessorySocket = accessoryId ? EQUIPMENT_VISUALS[accessoryId]?.socket : undefined;
     this.syncAttachedVisual("accessory", accessoryId,
       this.avatar.userData.sculptRuntime.sockets[accessorySocket ?? "back"]);
+    // A bow occupies the off hand. Preserve the selected accessory in the profile
+    // so changing back to a staff or sword restores its appearance immediately.
+    const accessory = this.activeVisuals.accessory;
+    if (accessory) accessory.visible = !(weaponSocket === "hand.L" && accessorySocket === "hand.L");
     this.syncOutfit(profile.equipped.outfit);
   }
 
@@ -166,7 +176,8 @@ export class EquipmentRenderer {
   private fitAttachedVisual(slot: AttachedSlot, visual: THREE.Group): void {
     const imported = this.avatar.userData.assetSource === "blender-glb";
     if (slot === "weapon") {
-      visual.rotation.set(0.08, 0, imported ? 0 : Math.PI);
+      const ranged = visual.userData.weaponKind === "staff" || visual.userData.weaponKind === "bow";
+      visual.rotation.set(0.08, 0, ranged ? (imported ? Math.PI : 0) : (imported ? 0 : Math.PI));
       visual.position.set(0, -0.15, 0.08);
     } else if (slot === "head") {
       visual.position.set(0, 0, 0);

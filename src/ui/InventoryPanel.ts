@@ -1,6 +1,6 @@
 import { EQUIPMENT_SLOTS } from "../domain/character";
 import type { CharacterProfile, EquipmentSlot } from "../domain/character";
-import { CLASS_CATALOG, ITEM_CATALOG, getItemDefinition } from "../domain/catalog";
+import { CLASS_CATALOG, ITEM_CATALOG, getItemDefinition, getWeaponKind } from "../domain/catalog";
 
 import { equipOwnedItem } from "../domain/equipment";
 import { itemArt } from "./itemArt";
@@ -182,7 +182,8 @@ export class InventoryPanel {
     }).join("");
     this.requiredElement(".inventory-equipment").innerHTML = EQUIPMENT_SLOTS.map(slot => {
       const id = selectedItemId(this.draft, slot);
-      return `<button type="button" class="equipment-slot${changed.includes(slot) ? " is-pending" : ""}" data-filter="${slot}">${itemArt(id)}<span><small>${SLOT_LABELS[slot]}${changed.includes(slot) ? " · 변경 예정" : " · 장착 중"}</small><strong>${getItemDefinition(id)?.label ?? "없음"}</strong></span></button>`;
+      const hiddenAccessory = slot === "accessory" && getWeaponKind(this.draft.equipped.weapon) === "bow" && (id === "accessory.kite-shield" || id === "accessory.harbor-lantern");
+      return `<button type="button" class="equipment-slot${changed.includes(slot) ? " is-pending" : ""}" data-filter="${slot}">${itemArt(id)}<span><small>${SLOT_LABELS[slot]}${hiddenAccessory ? " · 활 사용 중 숨김" : changed.includes(slot) ? " · 변경 예정" : " · 장착 중"}</small><strong>${getItemDefinition(id)?.label ?? "없음"}</strong></span></button>`;
     }).join("");
     root.querySelectorAll<HTMLElement>(".inventory-filters [data-filter]").forEach(button => button.setAttribute("aria-pressed", String(button.dataset.filter === this.filter)));
     this.requiredElement(".preview-state").textContent = changed.length ? "착장 미리보기 · 아직 적용되지 않음" : "현재 장착 모습";

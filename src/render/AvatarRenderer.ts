@@ -3,6 +3,9 @@ import { createRuntimeAvatar } from "../assets/avatar/createRuntimeAvatar";
 import type { AvatarGroup, AvatarOutfitId } from "../assets/types";
 import { isAvatarOutfitId } from "../assets/types";
 import type { CharacterProfile } from "../domain/character";
+import { getWeaponKind, type WeaponKind } from "../domain/catalog";
+import { WeaponEffects } from "./effects/WeaponEffects";
+import { CombatAnimator } from "./CombatAnimator";
 import type { AnimationState } from "../game/animationState";
 
 export interface AvatarRendererOptions {
@@ -21,7 +24,11 @@ export class AvatarRenderer {
   private readonly attackEffect: THREE.Group;
   private readonly attackEffectMaterial: THREE.MeshBasicMaterial;
   private readonly visualScale: number;
+  private readonly rangedEffects: WeaponEffects;
   private disposed = false;
+  private combat!: CombatAnimator;
+  private attacking = false;
+  private weaponKind: WeaponKind;
   private readonly base = {
     leftArmX: 0,
     leftArmZ: 0,
@@ -43,6 +50,7 @@ export class AvatarRenderer {
     profile: CharacterProfile,
     options: AvatarRendererOptions = {},
   ) {
+    this.weaponKind = getWeaponKind(profile.equipped.weapon);
     this.visualScale = options.visualScale ?? 1;
     this.avatar = (options.createAvatar ?? createRuntimeAvatar)({
       body: profile.body,
@@ -58,6 +66,8 @@ export class AvatarRenderer {
     parent.add(this.attackEffect);
 
     this.bindRuntimeNodes();
+    this.rangedEffects = new WeaponEffects(parent, this.avatar, this.visualScale);
+    this.rangedEffects.setWeapon(profile.equipped.weapon);
     void this.avatar.userData.assetReady?.then(() => {
       if (!this.disposed) this.bindRuntimeNodes();
     });
@@ -84,7 +94,19 @@ export class AvatarRenderer {
     this.base.headZ = this.head.rotation.z;
     this.base.headY = this.head.position.y;
     this.base.avatarZ = this.avatar.position.z;
+    this.combat = new CombatAnimator(this.avatar);
   }
+
+  public setWeapon(itemId: string | null): void {
+    this.weaponKind = getWeaponKind(itemId);
+    this.rangedEffects.setWeapon(itemId);
+  }
+
+  public get attackEffectName(): string { return this.rangedEffects.name; }
+
+  public get effectPhase(): string { return this.rangedEffects.phase; }
+
+  public get effectProgress(): number { return this.rangedEffects.normalizedProgress; }
 
   public face(direction: THREE.Vector3, deltaSeconds: number): void {
     if (direction.lengthSq() < 0.000001) return;
@@ -101,15 +123,22 @@ export class AvatarRenderer {
     attackProgress = 0,
   ): void {
     if (!this.avatar.visible) {
-      this.updateAttackEffect(0);
-      return;
-    }
-    if (this.avatar.userData.animationRuntime?.update(state, deltaSeconds) === true) {
-      this.updateAttackEffect(state === "attack_1" ? attackProgress : 0);
+      this.updateAttackEffect(0, deltaSeconds);
       return;
     }
     if (state === "attack_1") {
-      this.updateAttack(deltaSeconds, attackProgress);
+      this.avatar.userData.animationRuntime?.stop?.();
+      this.attacking = true;
+      this.combat.update(this.weaponKind, attackProgress);
+      this.updateAttackEffect(attackProgress, deltaSeconds, true);
+      return;
+    }
+    if (this.attacking) {
+      this.combat.reset();
+      this.attacking = false;
+    }
+    if (this.avatar.userData.animationRuntime?.update(state, deltaSeconds) === true) {
+      this.updateAttackEffect(0, deltaSeconds);
       return;
     }
 
@@ -138,64 +167,24 @@ export class AvatarRenderer {
     this.head.rotation.z = THREE.MathUtils.damp(this.head.rotation.z, this.base.headZ + (moving ? -cycle * 0.018 : Math.sin(elapsedSeconds * 1.3) * 0.018), damping, deltaSeconds);
     this.avatar.position.y = THREE.MathUtils.damp(this.avatar.position.y, bob, damping, deltaSeconds);
     this.avatar.position.z = THREE.MathUtils.damp(this.avatar.position.z, this.base.avatarZ, damping, deltaSeconds);
-    this.updateAttackEffect(0);
+    this.updateAttackEffect(0, deltaSeconds);
   }
 
-  private updateAttack(deltaSeconds: number, progress: number): void {
-    const windup = smoothStep(0, 0.24, progress);
-    const slash = smoothStep(0.24, 0.58, progress);
-    const recovery = smoothStep(0.58, 1, progress);
-    const rightArmX = THREE.MathUtils.lerp(-0.92, 0.54, slash);
-    const rightArmZ = THREE.MathUtils.lerp(0.58, -1.04, slash);
-    const chestYaw = THREE.MathUtils.lerp(-0.42, 0.52, slash);
-    const lunge = Math.sin(Math.min(progress, 1) * Math.PI) * 0.2;
-    const blend = 1 - recovery;
-    const damping = 30;
-
-    this.rightArm.rotation.x = THREE.MathUtils.damp(
-      this.rightArm.rotation.x,
-      this.base.rightArmX + rightArmX * Math.max(windup, blend),
-      damping,
-      deltaSeconds,
-    );
-    this.rightArm.rotation.z = THREE.MathUtils.damp(
-      this.rightArm.rotation.z,
-      this.base.rightArmZ + rightArmZ * Math.max(windup, blend),
-      damping,
-      deltaSeconds,
-    );
-    this.leftArm.rotation.x = THREE.MathUtils.damp(this.leftArm.rotation.x, this.base.leftArmX + 0.24 * blend, damping, deltaSeconds);
-    this.leftArm.rotation.z = THREE.MathUtils.damp(this.leftArm.rotation.z, this.base.leftArmZ - 0.18 * blend, damping, deltaSeconds);
-    this.leftLeg.rotation.x = THREE.MathUtils.damp(this.leftLeg.rotation.x, this.base.leftLegX - 0.18 * blend, damping, deltaSeconds);
-    this.rightLeg.rotation.x = THREE.MathUtils.damp(this.rightLeg.rotation.x, this.base.rightLegX + 0.3 * blend, damping, deltaSeconds);
-    this.chest.rotation.x = THREE.MathUtils.damp(this.chest.rotation.x, this.base.chestX + 0.08 * blend, damping, deltaSeconds);
-    this.chest.rotation.z = THREE.MathUtils.damp(this.chest.rotation.z, this.base.chestZ - 0.08 * blend, damping, deltaSeconds);
-    this.chest.rotation.y = THREE.MathUtils.damp(this.chest.rotation.y, this.base.chestRotationY + chestYaw * blend, damping, deltaSeconds);
-    this.chest.position.y = THREE.MathUtils.damp(this.chest.position.y, this.base.chestY - 0.04 * blend, damping, deltaSeconds);
-    this.head.position.y = THREE.MathUtils.damp(this.head.position.y, this.base.headY, damping, deltaSeconds);
-    this.head.rotation.z = THREE.MathUtils.damp(this.head.rotation.z, this.base.headZ + 0.05 * blend, damping, deltaSeconds);
-    this.avatar.position.y = THREE.MathUtils.damp(this.avatar.position.y, 0, damping, deltaSeconds);
-    this.avatar.position.z = THREE.MathUtils.damp(this.avatar.position.z, this.base.avatarZ + lunge, damping, deltaSeconds);
-    this.updateAttackEffect(progress);
-  }
-
-  private updateAttackEffect(progress: number): void {
-    const visibleProgress = THREE.MathUtils.clamp((progress - 0.27) / 0.34, 0, 1);
-    const fade = 1 - THREE.MathUtils.clamp((progress - 0.61) / 0.17, 0, 1);
-    this.attackEffect.visible = visibleProgress > 0 && fade > 0;
-    this.attackEffectMaterial.opacity = visibleProgress * fade * 0.48;
-    this.attackEffect.position.copy(this.avatar.position);
-    this.attackEffect.position.y += 2.15 * this.visualScale;
-    this.attackEffect.position.z += 0.42 * this.visualScale;
-    this.attackEffect.rotation.y = this.avatar.rotation.y;
-    this.attackEffect.rotation.z = THREE.MathUtils.lerp(0.68, -0.48, visibleProgress);
-    this.attackEffect.scale.setScalar(
-      THREE.MathUtils.lerp(0.78, 1.06, visibleProgress) * this.visualScale,
-    );
+  private updateAttackEffect(progress: number, deltaSeconds: number, attacking = false): void {
+    this.rangedEffects.update(deltaSeconds, attacking, progress);
+    const flight = THREE.MathUtils.clamp((progress - 0.32) / 0.64, 0, 1);
+    this.attackEffect.visible = this.weaponKind === "sword" && progress > 0.32 && progress < 0.96;
+    this.attackEffectMaterial.opacity = Math.sin(flight * Math.PI) * 0.8;
+    const forward = new THREE.Vector3(0, 0, 1).applyAxisAngle(new THREE.Vector3(0, 1, 0), this.avatar.rotation.y);
+    this.attackEffect.position.copy(this.avatar.position).addScaledVector(forward, 0.9 * this.visualScale);
+    this.attackEffect.position.y += 3 * this.visualScale;
+    this.attackEffect.rotation.set(0, this.avatar.rotation.y, 0.5 - flight);
+    this.attackEffect.scale.setScalar(this.visualScale);
   }
 
   public dispose(): void {
     this.disposed = true;
+    this.rangedEffects.dispose();
     this.avatar.userData.disposed = true;
     this.avatar.userData.animationRuntime?.dispose();
     this.avatar.userData.animationRuntime = undefined;
@@ -218,8 +207,8 @@ function createAttackEffect(): { group: THREE.Group; material: THREE.MeshBasicMa
   const shape = new THREE.Shape();
   const start = -0.82;
   const end = 0.82;
-  shape.absarc(0, 0, 2.05, start, end, false);
-  shape.absarc(0, 0, 1.62, end, start, true);
+  shape.absarc(0, 0, 1.2, start, end, false);
+  shape.absarc(0, 0, 1.04, end, start, true);
   shape.closePath();
   const material = new THREE.MeshBasicMaterial({
     color: 0xc9efff,
@@ -234,13 +223,9 @@ function createAttackEffect(): { group: THREE.Group; material: THREE.MeshBasicMa
   const group = new THREE.Group();
   group.name = "attack_1.effect";
   group.visible = false;
+  mesh.rotation.y = -Math.PI / 2;
   group.add(mesh);
   return { group, material };
-}
-
-function smoothStep(min: number, max: number, value: number): number {
-  const x = THREE.MathUtils.clamp((value - min) / (max - min), 0, 1);
-  return x * x * (3 - 2 * x);
 }
 
 function getAvatarOutfitId(itemId: string | null): AvatarOutfitId | undefined {

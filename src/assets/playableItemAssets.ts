@@ -1,14 +1,15 @@
-import { ITEM_CATALOG, NEW_ITEM_IDS } from "../domain/catalog";
+import { ITEM_CATALOG, NEW_ITEM_IDS, RANGED_WEAPON_IDS } from "../domain/catalog";
 import { createAnimeAvatar } from "./avatar/createAnimeAvatar";
+import { RANGED_WEAPON_FACTORIES } from "./equipment/createRangedWeapons";
 import { DISTINCT_WEAPON_FACTORIES } from "./equipment/createDistinctWeapons";
 import { DISTINCT_HEAD_FACTORIES } from "./equipment/createDistinctHeadwear";
 import { DISTINCT_ACCESSORY_FACTORIES } from "./equipment/createDistinctAccessories";
 import { isAvatarOutfitId, type AssetDefinition } from "./types";
 
-const factories = { ...DISTINCT_WEAPON_FACTORIES, ...DISTINCT_HEAD_FACTORIES, ...DISTINCT_ACCESSORY_FACTORIES };
+const factories = { ...RANGED_WEAPON_FACTORIES, ...DISTINCT_WEAPON_FACTORIES, ...DISTINCT_HEAD_FACTORIES, ...DISTINCT_ACCESSORY_FACTORIES };
 
 /** The same original item meshes used by the game, exposed for gallery inspection. */
-export const playableItemAssets: readonly AssetDefinition[] = NEW_ITEM_IDS.map(id => {
+export const playableItemAssets: readonly AssetDefinition[] = [...NEW_ITEM_IDS, ...RANGED_WEAPON_IDS].map(id => {
   const item = ITEM_CATALOG[id];
   return {
     id,

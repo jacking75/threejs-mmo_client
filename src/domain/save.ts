@@ -1,4 +1,4 @@
-import { getItemDefinition, NEW_ITEM_IDS } from "./catalog";
+import { getItemDefinition, NEW_ITEM_IDS, RANGED_WEAPON_IDS } from "./catalog";
 import {
   BODY_PRESENTATIONS,
   CHARACTER_CLASSES,
@@ -71,7 +71,7 @@ export function restoreProfile(serialized: string | null): CharacterProfile | nu
       name: nameResult.name,
       body: value.body,
       classId: value.classId,
-      ownedItemIds: [...new Set([...value.ownedItemIds, "accessory.none", ...NEW_ITEM_IDS])],
+      ownedItemIds: [...new Set([...value.ownedItemIds, "accessory.none", ...NEW_ITEM_IDS, ...RANGED_WEAPON_IDS])],
       equipped,
     };
   } catch {

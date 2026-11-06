@@ -11,7 +11,7 @@ describe("buildInventorySlotViews", () => {
     expect(groups.map(({ slot }) => slot)).toEqual(["weapon", "outfit", "head", "accessory"]);
     const weapons = groups.find(({ slot }) => slot === "weapon")?.items ?? [];
     expect(weapons).toEqual(expect.arrayContaining([
-      expect.objectContaining({ id: "weapon.training-sword", owned: true, equipped: true }),
+      expect.objectContaining({ id: "weapon.apprentice-staff", owned: true, equipped: true }),
       expect.objectContaining({ id: "weapon.moon-sword", owned: true, equipped: false }),
     ]));
 

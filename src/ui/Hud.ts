@@ -1,5 +1,5 @@
 import type { CharacterProfile } from "../domain/character";
-import { CLASS_CATALOG, getItemDefinition } from "../domain/catalog";
+import { CLASS_CATALOG, getItemDefinition, getWeaponKind } from "../domain/catalog";
 import type { AnimationState } from "../game/animationState";
 import { itemArt } from "./itemArt";
 
@@ -19,7 +19,7 @@ export function buildHudView(profile: CharacterProfile): HudView {
     characterName: profile.name,
     classLabel,
     classMark: classLabel.slice(0, 1),
-    weaponLabel: `장착 검 · ${weapon?.label ?? "없음"}`,
+    weaponLabel: `장착 무기 · ${weapon?.label ?? "없음"}`,
   };
 }
 
@@ -122,6 +122,13 @@ export class Hud {
     this.weaponElement.textContent = view.weaponLabel;
     const art = this.attackButton?.querySelector(".item-art");
     if (art) art.outerHTML = itemArt(this.profile.equipped.weapon ?? "weapon.training-sword");
+    if (this.attackButton) {
+      const labels = { sword: "검 공격", staff: "마법 시전", bow: "활 발사" } as const;
+      const label = labels[getWeaponKind(this.profile.equipped.weapon)];
+      this.attackButton.title = `${label} · F 또는 필드 좌클릭`;
+      const labelElement = this.attackButton.querySelector("strong");
+      if (labelElement) labelElement.textContent = label;
+    }
   }
 
   private requiredElement<T extends Element>(selector: string): T {

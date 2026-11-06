@@ -46,6 +46,7 @@ export interface SculptRuntime {
 
 export interface AvatarAnimationRuntime {
   readonly clipNames: readonly string[];
+  stop?(): void;
   update(state: "idle" | "run" | "sprint" | "attack_1", deltaSeconds: number): boolean;
   dispose(): void;
 }

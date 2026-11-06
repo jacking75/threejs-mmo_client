@@ -129,6 +129,11 @@ class ImportedAnimationRuntime implements AvatarAnimationRuntime {
     return true;
   }
 
+  public stop(): void {
+    this.mixer.stopAllAction();
+    this.currentState = null;
+  }
+
   public dispose(): void {
     this.mixer.stopAllAction();
     this.mixer.uncacheRoot(this.mixer.getRoot());

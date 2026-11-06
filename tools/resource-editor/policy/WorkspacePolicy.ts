@@ -4,7 +4,6 @@ import { isAbsolute, relative, resolve, sep } from "node:path";
 export const DEFAULT_WRITE_ROOTS = [
   "src/assets",
   "tests/assets",
-  "docs/IMPLEMENTATION_PLAN.md",
   "docs_working/working_log.md",
 ] as const;
 

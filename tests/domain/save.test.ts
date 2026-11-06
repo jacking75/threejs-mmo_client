@@ -49,7 +49,7 @@ describe("profile serialization", () => {
     }))).toBeNull();
     expect(restoreProfile(JSON.stringify({
       ...profile,
-      ownedItemIds: profile.ownedItemIds.filter((itemId) => itemId !== "weapon.training-sword"),
+      ownedItemIds: profile.ownedItemIds.filter((itemId) => itemId !== profile.equipped.weapon),
     }))).toBeNull();
   });
 });

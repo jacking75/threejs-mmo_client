@@ -17,7 +17,7 @@ sequenceDiagram
     Save-->>Game: 저장 성공 여부
     Game->>Render: sync(profile)
     Render->>Render: 이전 장비 dispose / 새 Group 생성
-    Render->>Render: hand.R에 부착
+    Render->>Render: 무기 종류에 맞는 이름 있는 소켓에 부착
     Game-->>UI: 적용 성공 → draft를 확정 상태로 표시
 ```
 
@@ -42,7 +42,7 @@ Three.js의 +Y는 위다. 이동은 카메라의 시선 벡터를 XZ 평면에 �
 대각선 입력도 길이를 1로 제한한다. 검 팩토리의 그립은 원점, 칼끝은 로컬 +Y이고, 장비 어댑터가 손 소켓의 회전에 맞춘다.
 `attack_1` 활성 중에는 이동 키가 눌려도 공격 포즈를 유지한다. 종료한 다음 현재 입력에 따라 run/sprint/idle로 돌아간다.
 
-## 실습 1: 세 번째 검 추가
+## 실습 1: 새 검 추가
 
 별도 실습 브랜치에서 수행한다. 아래는 새 파일 `src/assets/equipment/createPracticeSword.ts`의 예다.
 
@@ -58,7 +58,7 @@ export function createPracticeSword() {
 ```
 
 1. `src/domain/catalog.ts`의 ITEM_IDS에 `weapon.practice-sword`를 추가한다.
-2. ITEM_CATALOG에 `{ id: "weapon.practice-sword", label: "실습용 검", slot: "weapon" }`을 추가한다.
+2. ITEM_CATALOG에 `{ id: "weapon.practice-sword", label: "실습용 검", slot: "weapon", weaponKind: "sword" }`을 추가한다.
 3. getStartingOwnedItemIds의 반환 목록에 새 ID를 추가한다. 기존 저장에는 소유권이 없으므로 새 캐릭터로 확인한다.
 4. `EquipmentRenderer.ts`에서 팩토리를 import하고 EQUIPMENT_VISUALS에 `{ itemId: "weapon.practice-sword", slot: "weapon", create: createPracticeSword }`를 등록한다.
 5. 기존 equipment 단위 테스트 방식으로 소유 시 장착 성공, 미소유 시 거부를 검증한다. 런타임 소켓에 검이 한 개만 남는지 반복 교체한다.
@@ -68,7 +68,7 @@ export function createPracticeSword() {
 
 ## 실습 2: 공격 지속 시간
 
-`src/game/animationState.ts`의 ATTACK_DURATION_SECONDS를 0.72에서 1.0으로 바꾼다.
+`src/game/animationState.ts`의 공격 지속 시간 설정을 조정한다.
 `tests/game/frameRate.test.ts`의 기대 시간을 함께 바꾸고, `tests/game/animationState.test.ts`에서 공격 우선순위 경계를 검토한다.
 W를 누른 채 F를 누르고 공격이 끝나기 전 run으로 바뀌지 않는지 확인한다.
 시각 타이밍과 이동 잠금은 서로 다른 값이므로 이동 잠금 시간을 무조건 같이 늘리지 않는다.

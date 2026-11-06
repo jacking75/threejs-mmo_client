@@ -1,9 +1,13 @@
 import { EXPANDED_ITEM_ART } from "./expandedItemArt";
+import { rangedWeaponArt } from "./rangedWeaponArt";
 
 /** Original inline vector illustrations; no external images or font glyph icons. */
 export function itemArt(id: string): string {
   let drawing: string;
-  if (EXPANDED_ITEM_ART[id]) {
+  const ranged = rangedWeaponArt(id);
+  if (ranged) {
+    drawing = ranged;
+  } else if (EXPANDED_ITEM_ART[id]) {
     drawing = EXPANDED_ITEM_ART[id];
   } else if (id.startsWith("weapon.")) {
     const moon = id === "weapon.moon-sword";

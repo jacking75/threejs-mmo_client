@@ -8,7 +8,7 @@ describe("buildInventorySlotViews", () => {
     const profile = createDefaultProfile({ name: "루나", body: "feminine", classId: "mage" });
     const groups = buildInventorySlotViews(profile);
 
-    expect(groups.map(({ slot }) => slot)).toEqual(["weapon", "outfit", "head"]);
+    expect(groups.map(({ slot }) => slot)).toEqual(["weapon", "outfit", "head", "accessory"]);
     const weapons = groups.find(({ slot }) => slot === "weapon")?.items ?? [];
     expect(weapons).toEqual(expect.arrayContaining([
       expect.objectContaining({ id: "weapon.training-sword", owned: true, equipped: true }),
@@ -20,6 +20,12 @@ describe("buildInventorySlotViews", () => {
       expect.objectContaining({ id: "outfit.mage-starter", owned: true, equipped: true }),
       expect.objectContaining({ id: "outfit.traveler", owned: true, equipped: false }),
       expect.objectContaining({ id: "outfit.warrior-starter", owned: false, equipped: false }),
+    ]));
+    const accessories = groups.find(({ slot }) => slot === "accessory")?.items ?? [];
+    expect(accessories).toHaveLength(6);
+    expect(accessories).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: "accessory.none", owned: true, equipped: true }),
+      expect.objectContaining({ id: "accessory.kite-shield", owned: true, equipped: false }),
     ]));
   });
 

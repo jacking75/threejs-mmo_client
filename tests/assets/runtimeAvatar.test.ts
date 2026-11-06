@@ -82,8 +82,8 @@ describe("createRuntimeAvatar", () => {
     expect(importedTraveler?.visible).toBe(true);
     expect(tunic.visible).toBe(false);
     expect(cap?.parent).toBe(avatar.userData.sculptRuntime.sockets.head);
-    expect(cap?.position.y).toBeCloseTo(-0.3);
-    expect(cap?.scale.x).toBeCloseTo(0.9);
+    expect(cap?.position.y).toBeCloseTo(0);
+    expect(cap?.scale.x).toBeCloseTo(1.1);
   });
 });
 

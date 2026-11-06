@@ -1,4 +1,6 @@
 import type { CharacterClass, EquipmentSlot, EquippedItems } from "./character";
+import { NEW_ITEM_DEFINITIONS, NEW_ITEM_IDS } from "./expandedItems";
+export { NEW_ITEM_DEFINITIONS, NEW_ITEM_IDS } from "./expandedItems";
 
 export const ITEM_IDS = [
   "weapon.training-sword",
@@ -9,6 +11,8 @@ export const ITEM_IDS = [
   "outfit.traveler",
   "head.none",
   "head.starter-cap",
+  "accessory.none",
+  ...NEW_ITEM_IDS,
 ] as const;
 
 export type ItemId = (typeof ITEM_IDS)[number];
@@ -17,16 +21,18 @@ export interface ItemDefinition {
   readonly id: ItemId;
   readonly label: string;
   readonly slot: EquipmentSlot;
+  readonly description?: string;
 }
 
 export interface CharacterClassDefinition {
   readonly id: CharacterClass;
   readonly label: string;
   readonly description: string;
-  readonly starterEquipment: Readonly<Record<EquipmentSlot, ItemId>>;
+  readonly starterEquipment: Readonly<Record<Exclude<EquipmentSlot, "accessory">, ItemId> & { accessory: null }>;
 }
 
 export const ITEM_CATALOG: Readonly<Record<ItemId, ItemDefinition>> = {
+  ...Object.fromEntries(NEW_ITEM_DEFINITIONS.map(item => [item.id, item])) as Record<(typeof NEW_ITEM_IDS)[number], ItemDefinition>,
   "weapon.training-sword": { id: "weapon.training-sword", label: "연습용 검", slot: "weapon" },
   "weapon.moon-sword": { id: "weapon.moon-sword", label: "달빛 검", slot: "weapon" },
   "outfit.warrior-starter": { id: "outfit.warrior-starter", label: "전사 튜닉", slot: "outfit" },
@@ -35,6 +41,7 @@ export const ITEM_CATALOG: Readonly<Record<ItemId, ItemDefinition>> = {
   "outfit.traveler": { id: "outfit.traveler", label: "여행자 의상", slot: "outfit" },
   "head.none": { id: "head.none", label: "없음", slot: "head" },
   "head.starter-cap": { id: "head.starter-cap", label: "초보자 모자", slot: "head" },
+  "accessory.none": { id: "accessory.none", label: "보조 장비 해제", slot: "accessory" },
 };
 
 export const CLASS_CATALOG: Readonly<Record<CharacterClass, CharacterClassDefinition>> = {
@@ -46,6 +53,7 @@ export const CLASS_CATALOG: Readonly<Record<CharacterClass, CharacterClassDefini
       weapon: "weapon.training-sword",
       outfit: "outfit.warrior-starter",
       head: "head.none",
+      accessory: null,
     },
   },
   mage: {
@@ -56,6 +64,7 @@ export const CLASS_CATALOG: Readonly<Record<CharacterClass, CharacterClassDefini
       weapon: "weapon.training-sword",
       outfit: "outfit.mage-starter",
       head: "head.none",
+      accessory: null,
     },
   },
   ranger: {
@@ -66,12 +75,13 @@ export const CLASS_CATALOG: Readonly<Record<CharacterClass, CharacterClassDefini
       weapon: "weapon.training-sword",
       outfit: "outfit.ranger-starter",
       head: "head.none",
+      accessory: null,
     },
   },
 };
 
 export function getItemDefinition(itemId: string): ItemDefinition | undefined {
-  return ITEM_CATALOG[itemId as ItemId];
+  return Object.hasOwn(ITEM_CATALOG, itemId) ? ITEM_CATALOG[itemId as ItemId] : undefined;
 }
 
 export function getStartingEquipment(classId: CharacterClass): EquippedItems {
@@ -86,5 +96,7 @@ export function getStartingOwnedItemIds(classId: CharacterClass): readonly ItemI
     "outfit.traveler",
     "head.none",
     "head.starter-cap",
+    "accessory.none",
+    ...NEW_ITEM_IDS,
   ];
 }

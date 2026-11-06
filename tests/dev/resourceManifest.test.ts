@@ -4,8 +4,8 @@ import { assetCatalog, avatarAssets, creatureAssets, faunaAssets, legacyEquipmen
 import { getResourceOwnership, getStablePartKey } from "../../src/dev/resource-editor/resourceManifest";
 
 describe("resource editor manifest", () => {
-  it("655개 모든 리소스를 소유 소스와 focused test에 매핑한다", () => {
-    expect(assetCatalog).toHaveLength(655);
+  it("685개 모든 리소스를 소유 소스와 focused test에 매핑한다", () => {
+    expect(assetCatalog).toHaveLength(685);
     for (const definition of assetCatalog) {
       const ownership = getResourceOwnership(definition);
       expect(ownership.sourceFiles.length).toBeGreaterThan(0);

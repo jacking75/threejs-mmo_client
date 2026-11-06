@@ -42,7 +42,7 @@ export class ResourceEditorApp {
           <div class="re-top-status">
             <span><i class="re-live-dot"></i> LOCAL ONLY</span>
             <span>ACP v1 · 1.3.0</span>
-            <span>655 ASSETS</span>
+            <span>${assetCatalog.length} ASSETS</span>
             <button id="re-theme" type="button" aria-label="테마 전환">◐</button>
           </div>
         </header>

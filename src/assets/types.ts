@@ -3,11 +3,33 @@ import type { BodyPresentation, CharacterClass } from "../domain/character";
 
 export type { BodyPresentation, CharacterClass } from "../domain/character";
 
+export const NEW_OUTFIT_IDS = [
+  "outfit.dune-nomad",
+  "outfit.tide-captain",
+  "outfit.clockwork-artisan",
+  "outfit.shrine-keeper",
+  "outfit.frost-warden",
+  "outfit.mushroom-forager",
+  "outfit.sky-courier",
+  "outfit.obsidian-knight",
+  "outfit.festival-dancer",
+  "outfit.astral-scholar",
+] as const;
+
+export type NewOutfitId = (typeof NEW_OUTFIT_IDS)[number];
+
 export type AvatarOutfitId =
+  | NewOutfitId
   | "outfit.warrior-starter"
   | "outfit.mage-starter"
   | "outfit.ranger-starter"
   | "outfit.traveler";
+
+export function isAvatarOutfitId(value: string | null | undefined): value is AvatarOutfitId {
+  return value === "outfit.warrior-starter" || value === "outfit.mage-starter"
+    || value === "outfit.ranger-starter" || value === "outfit.traveler"
+    || NEW_OUTFIT_IDS.some((id) => id === value);
+}
 
 export interface AvatarOptions {
   readonly body: BodyPresentation;

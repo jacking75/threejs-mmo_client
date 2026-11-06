@@ -1,0 +1,36 @@
+/** Original wearable designs, granted to every local prototype character. */
+export const NEW_ITEM_DEFINITIONS = [
+  { id: "outfit.dune-nomad", slot: "outfit", label: "모래바람 유목복", description: "비대칭 어깨천과 겹쳐 두른 사막의 긴 옷자락." },
+  { id: "outfit.tide-captain", slot: "outfit", label: "조류 선장 제복", description: "넓은 옷깃과 견장이 달린 해군 선장의 코트." },
+  { id: "outfit.clockwork-artisan", slot: "outfit", label: "태엽 장인 작업복", description: "가죽 앞치마와 기계 장식으로 꾸민 제작자의 작업복." },
+  { id: "outfit.shrine-keeper", slot: "outfit", label: "신사 수호 예복", description: "넓은 소매와 붉은 허리띠가 돋보이는 의식용 예복." },
+  { id: "outfit.frost-warden", slot: "outfit", label: "설원 파수꾼 외투", description: "두툼한 모피 깃과 겨울용 어깨 덮개를 갖춘 외투." },
+  { id: "outfit.mushroom-forager", slot: "outfit", label: "버섯 채집가 복장", description: "잎사귀 옷자락과 작은 채집 주머니를 두른 숲의 복장." },
+  { id: "outfit.sky-courier", slot: "outfit", label: "하늘 우편 배달복", description: "날개 모양 어깨 장식과 가벼운 운반용 하네스." },
+  { id: "outfit.obsidian-knight", slot: "outfit", label: "흑요석 기사 갑주", description: "날카로운 흑요석 판과 큰 견갑을 겹친 각진 갑주." },
+  { id: "outfit.festival-dancer", slot: "outfit", label: "축제 무희 의상", description: "펼쳐진 치맛자락과 화려한 장식이 달린 축제 의상." },
+  { id: "outfit.astral-scholar", slot: "outfit", label: "성좌 학자 로브", description: "별의 궤도 장식과 긴 학자용 드레이프를 갖춘 로브." },
+  { id: "head.witch-hat", slot: "head", label: "구부러진 마녀 모자", description: "높고 구부러진 고깔과 넓은 챙의 마녀 모자." },
+  { id: "head.antler-crown", slot: "head", label: "숲사슴 뿔관", description: "양옆으로 갈라진 사슴뿔이 자라난 숲의 왕관." },
+  { id: "head.diving-helm", slot: "head", label: "심해 잠수 투구", description: "둥근 금속 껍질과 커다란 원형 창의 잠수 투구." },
+  { id: "head.kitsune-mask", slot: "head", label: "여우 축제 가면", description: "뾰족한 귀와 붉은 무늬를 새긴 여우 얼굴 가면." },
+  { id: "head.phoenix-crest", slot: "head", label: "불사조 깃장식", description: "불꽃처럼 솟은 긴 깃털 부채 장식." },
+  { id: "head.desert-turban", slot: "head", label: "사막 여행 터번", description: "겹겹이 감은 천과 길게 늘어진 천 꼬리." },
+  { id: "head.engineer-goggles", slot: "head", label: "기공사 확대경", description: "두 개의 두꺼운 렌즈와 금속 테를 갖춘 작업 고글." },
+  { id: "head.lotus-tiara", slot: "head", label: "연꽃 보석관", description: "꽃잎이 펼쳐진 낮은 관과 중앙의 보석." },
+  { id: "head.samurai-kabuto", slot: "head", label: "초승달 가부토", description: "넓은 목가리개와 초승달 전립의 무사 투구." },
+  { id: "head.mushroom-cap", slot: "head", label: "숲버섯 갓모자", description: "넓고 둥근 버섯 갓에 흰 반점이 있는 모자." },
+  { id: "weapon.sunfang-saber", slot: "weapon", label: "태양송곳니 세이버", description: "넓게 휘어진 칼날과 태양빛 손잡이 보호대." },
+  { id: "weapon.estoc", slot: "weapon", label: "백은 에스토크", description: "길고 가느다란 찌르기용 칼날과 섬세한 가드." },
+  { id: "weapon.sawtooth-cleaver", slot: "weapon", label: "톱니 도살검", description: "네모난 넓은 칼몸에 깊은 톱니가 난 중량검." },
+  { id: "weapon.crescent-shotel", slot: "weapon", label: "초승달 쇼텔", description: "크게 휘어 돌아오는 갈고리형 초승달 칼날." },
+  { id: "weapon.crystal-flamberge", slot: "weapon", label: "수정 불꽃검", description: "물결치는 결정 칼날이 빛을 받아 갈라지는 검." },
+  { id: "accessory.kite-shield", slot: "accessory", label: "문장 연방패", description: "왼손에 드는 길쭉한 연 모양 문장 방패." },
+  { id: "accessory.expedition-pack", slot: "accessory", label: "탐험가 배낭", description: "침낭과 수납 주머니를 묶은 등 부착 여행 배낭." },
+  { id: "accessory.astral-orbit", slot: "accessory", label: "성좌 궤도환", description: "등 뒤를 둘러싸는 천문 관측용 고리 장식." },
+  { id: "accessory.signal-banner", slot: "accessory", label: "원정 신호 깃발", description: "등의 긴 깃대에서 펄럭이는 원정대의 표식." },
+  { id: "accessory.harbor-lantern", slot: "accessory", label: "항구 탐색 등불", description: "왼손에 드는 손잡이와 보호 프레임이 달린 등불." },
+] as const;
+
+export type NewItemId = (typeof NEW_ITEM_DEFINITIONS)[number]["id"];
+export const NEW_ITEM_IDS: readonly NewItemId[] = NEW_ITEM_DEFINITIONS.map(({ id }) => id);

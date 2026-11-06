@@ -1,6 +1,8 @@
 import * as THREE from "three";
+import "../styles/game-ui.css";
 import type { CharacterProfile } from "../domain/character";
-import { equipOwnedItem } from "../domain/equipment";
+import { equipOwnedItems } from "../domain/equipment";
+import { CharacterPreview } from "../render/CharacterPreview";
 import {
   advanceAttack,
   createAttackTimeline,
@@ -10,6 +12,7 @@ import {
   startAttack,
 } from "./animationState";
 import type { AnimationState, AttackTimeline } from "./animationState";
+import { getTerrainHeight } from "./terrain";
 import { resolvePlayerMovement } from "./collision";
 import { AttackInput, MovementInput } from "./input";
 import { getCameraRelativeMovement, getMovementSpeed } from "./movement";
@@ -93,7 +96,8 @@ export class GameApp {
     this.fieldShell.dataset.avatarScale = String(FIELD_AVATAR_SCALE);
     this.fieldShell.dataset.cameraFov = String(FIELD_CAMERA_FOV);
     this.viewport = this.requiredElement<HTMLElement>(".field-viewport");
-    this.hud = new Hud({ root: this.fieldShell, profile: this.profile, onExit: this.onExit });
+    this.hud = new Hud({ root: this.fieldShell, profile: this.profile, onExit: this.onExit,
+      onAttack: () => this.attackInput.requestAttack() });
     this.hud.start();
 
     this.renderer = createRenderer(canvas);
@@ -107,7 +111,8 @@ export class GameApp {
       root: this.requiredElement<HTMLElement>(".inventory-overlay"),
       toggleButton: this.requiredElement<HTMLButtonElement>(".inventory-toggle"),
       profile: this.profile,
-      onEquip: this.handleEquip,
+      onApply: this.handleApplyEquipment,
+      createPreview: (canvas, profile) => new CharacterPreview(canvas, profile, { interactive: true }),
       onOpenChange: this.handleInventoryOpenChange,
     });
     this.inventoryPanel.start();
@@ -116,6 +121,8 @@ export class GameApp {
       camera,
       this.field.playerTarget,
       FIELD_CAMERA_TARGET_HEIGHT,
+      getTerrainHeight,
+      this.field.cameraObstacles,
     );
     this.cameraController.connect(canvas);
     this.movementInput.connect();
@@ -201,8 +208,9 @@ export class GameApp {
     };
     const resolved = resolvePlayerMovement(current, desired, 0.48, FIELD_SIZE / 2, this.field.colliders);
     this.actualMovement.set(resolved.x - current.x, 0, resolved.z - current.z);
-    current.set(resolved.x, 0, resolved.z);
+    current.set(resolved.x, getTerrainHeight(resolved.x, resolved.z), resolved.z);
     if (this.fieldShell) {
+      this.fieldShell.dataset.playerY = current.y.toFixed(3);
       this.fieldShell.dataset.playerX = resolved.x.toFixed(2);
       this.fieldShell.dataset.playerZ = resolved.z.toFixed(2);
       this.fieldShell.dataset.avatarSource = this.avatarRenderer.avatar.userData.assetSource ?? "unknown";
@@ -231,12 +239,11 @@ export class GameApp {
     );
   }
 
-  private readonly handleEquip = (itemId: string): boolean => {
-    const result = equipOwnedItem(this.profile, itemId);
+  private readonly handleApplyEquipment = (itemIds: readonly string[]): boolean => {
+    const result = equipOwnedItems(this.profile, itemIds);
     if (!result.ok || !this.onProfileChange(result.profile)) return false;
     this.profile = result.profile;
     this.equipmentRenderer?.sync(this.profile);
-    this.inventoryPanel?.updateProfile(this.profile);
     this.hud?.updateProfile(this.profile);
     return true;
   };
@@ -245,6 +252,8 @@ export class GameApp {
     this.inventoryOpen = open;
     this.movementInput.setEnabled(!open);
     this.attackInput.setEnabled(!open);
+    this.cameraController?.setEnabled(!open);
+    this.hud?.setInventoryOpen(open);
     this.fieldShell?.classList.toggle("is-inventory-open", open);
     if (this.fieldShell) this.fieldShell.dataset.inventoryOpen = String(open);
   };

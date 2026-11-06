@@ -17,11 +17,13 @@ export class CharacterPreview {
   private animationFrameId: number | null = null;
   private width = 0;
   private height = 0;
+  private rotation = 0;
+  private profile: CharacterProfile | null = null;
 
   public constructor(
     private readonly canvas: HTMLCanvasElement,
     profile: CharacterProfile,
-    private readonly options: { readonly showClassEquipment?: boolean } = {},
+    private readonly options: { readonly showClassEquipment?: boolean; readonly interactive?: boolean } = {},
   ) {
     this.renderer = createRenderer(canvas);
     this.renderer.setClearColor(0x07101b, 1);
@@ -64,6 +66,12 @@ export class CharacterPreview {
   }
 
   public updateProfile(profile: CharacterProfile): void {
+    if (this.profile?.body === profile.body && this.profile.classId === profile.classId && this.equipmentRenderer) {
+      this.profile = profile;
+      this.equipmentRenderer.sync(profile);
+      return;
+    }
+    this.profile = profile;
     this.equipmentRenderer?.dispose();
     this.avatarRenderer?.dispose();
     this.characterRoot.rotation.set(0, 0.12, 0);
@@ -74,6 +82,10 @@ export class CharacterPreview {
       this.equipmentRenderer = new EquipmentRenderer(this.avatarRenderer.avatar);
       this.equipmentRenderer.sync(profile);
     }
+  }
+
+  public rotate(radians: number): void {
+    this.rotation += radians;
   }
 
   public dispose(): void {
@@ -97,8 +109,10 @@ export class CharacterPreview {
 
   private readonly renderFrame = (): void => {
     const deltaSeconds = Math.min(this.clock.getDelta(), 0.1);
-    this.characterRoot.rotation.y = Math.sin(this.clock.elapsedTime * 0.35) * 0.12;
+    this.characterRoot.rotation.y = this.rotation + Math.sin(this.clock.elapsedTime * 0.35) * 0.12;
     this.avatarRenderer?.update(deltaSeconds, this.clock.elapsedTime, "idle");
+    this.canvas.dataset.avatarStatus = this.avatarRenderer?.avatar.userData.assetStatus ?? "loading";
+    this.canvas.dataset.avatarSource = this.avatarRenderer?.avatar.userData.assetSource ?? "unknown";
     this.renderer.render(this.scene, this.camera);
     this.animationFrameId = requestAnimationFrame(this.renderFrame);
   };
@@ -111,6 +125,11 @@ export class CharacterPreview {
     this.height = height;
     this.renderer.setSize(width, height, false);
     this.camera.aspect = width / height;
+    if (this.options.interactive) {
+      // Include tall antlers, hats and the back-mounted banner in the dressing frame.
+      this.camera.position.z = Math.max(14.5, 9 / this.camera.aspect);
+      this.camera.lookAt(0, 2.8, 0);
+    }
     this.camera.updateProjectionMatrix();
   };
 }

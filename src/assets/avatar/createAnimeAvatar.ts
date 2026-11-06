@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { capsule, collectNamedNodes, extrudedShape, loftedLock, mesh } from "../geometry";
 import { CLASS_PALETTES, COMMON_COLORS, metal, standard, toon } from "../materials";
 import type { AvatarGroup, AvatarOptions, AvatarOutfitId, SculptRuntime } from "../types";
+import { addExpandedOutfit, isExpandedOutfitId } from "./createExpandedOutfit";
 
 const HAIR_COLORS = {
   feminine: { warrior: 0x51342f, mage: 0x514376, ranger: 0x8a4d37 },
@@ -532,7 +533,13 @@ export function createAvatarOutfitVisual(
   const chest = new THREE.Group();
   chest.name = `${outfitId}.chest`;
 
-  if (outfitId === "outfit.traveler") addTravelerOutfit(root, chest);
+  if (isExpandedOutfitId(outfitId)) {
+    addExpandedOutfit(outfitId, root, chest);
+    // The masculine capsule is wider/deeper than the fitted feminine torso.
+    // Fit the entire chest module so ornaments stay outside the garment shell.
+    if (body === "masculine") chest.scale.set(1.18, 1, 1.25);
+  }
+  else if (outfitId === "outfit.traveler") addTravelerOutfit(root, chest);
   else if (outfitId === "outfit.warrior-starter") addWarriorOutfit(root, chest, CLASS_PALETTES.warrior, body === "feminine");
   else if (outfitId === "outfit.mage-starter") addMageOutfit(root, chest, CLASS_PALETTES.mage);
   else addRangerOutfit(root, chest, CLASS_PALETTES.ranger);

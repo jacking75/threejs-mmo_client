@@ -1,4 +1,7 @@
 import type { AssetDefinition } from "../../assets/types";
+import { NEW_ITEM_IDS } from "../../domain/catalog";
+
+const newItemIds: ReadonlySet<string> = new Set(NEW_ITEM_IDS);
 
 export interface ResourceOwnership {
   readonly sourceFiles: readonly string[];
@@ -73,6 +76,16 @@ const LEGACY_SOURCE_FILES: Readonly<Record<string, readonly string[]>> = {
 };
 
 export function getResourceOwnership(definition: AssetDefinition): ResourceOwnership {
+  if (newItemIds.has(definition.id)) {
+    const sourceFiles = definition.category === "outfit"
+      ? ["src/assets/avatar/createExpandedOutfit.ts", "src/assets/avatar/createAnimeAvatar.ts", "src/assets/avatar/createRuntimeAvatar.ts"]
+      : [`src/assets/equipment/createDistinct${definition.category === "weapon" ? "Weapons" : definition.category === "head" ? "Headwear" : "Accessories"}.ts`, "src/assets/equipment/gearGeometry.ts"];
+    return {
+      sourceFiles,
+      focusedTests: [definition.category === "outfit" ? "tests/assets/expandedOutfits.test.ts" : "tests/assets/distinctGear.test.ts", "tests/render/EquipmentRenderer.test.ts"],
+      sharedImpact: "플레이어 인벤토리와 착장 미리보기, 필드 장착 및 갤러리에 함께 반영된다.",
+    };
+  }
   const base = CATEGORY_OWNERSHIP[definition.category];
   const legacySource = LEGACY_SOURCE_FILES[definition.id];
   return legacySource ? { ...base, sourceFiles: legacySource } : base;

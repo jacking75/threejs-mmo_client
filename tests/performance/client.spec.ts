@@ -22,6 +22,7 @@ test("100 equipment changes and 100 lobby/field transitions release GPU resource
   for (let i = 0; i < 100; i++) {
     await page.locator(`[data-item-id="weapon.${i % 2 ? "training" : "moon"}-sword"]`).click();
     await page.locator(`[data-item-id="outfit.${i % 2 ? "warrior-starter" : "traveler"}"]`).click();
+    await page.locator("[data-apply]").click();
   }
   await page.keyboard.press("Escape");
   await page.waitForTimeout(200);

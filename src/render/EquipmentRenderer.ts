@@ -6,12 +6,19 @@ import {
 import { applyImportedOutfit } from "../assets/avatar/createRuntimeAvatar";
 import { createStarterCap } from "../assets/equipment/createHeadEquipment";
 import { createMoonSword, createTrainingSword } from "../assets/equipment/createSword";
-import type { AvatarGroup, AvatarOutfitId } from "../assets/types";
+import { DISTINCT_WEAPON_FACTORIES } from "../assets/equipment/createDistinctWeapons";
+import { DISTINCT_HEAD_FACTORIES } from "../assets/equipment/createDistinctHeadwear";
+import { ACCESSORY_SOCKETS, DISTINCT_ACCESSORY_FACTORIES } from "../assets/equipment/createDistinctAccessories";
+import { isAvatarOutfitId } from "../assets/types";
+import type { AvatarGroup } from "../assets/types";
 import type { CharacterProfile, EquipmentSlot } from "../domain/character";
+
+type AttachedSlot = "weapon" | "head" | "accessory";
 
 export interface EquipmentVisual {
   readonly itemId: string;
-  readonly slot: "weapon" | "head";
+  readonly slot: AttachedSlot;
+  readonly socket?: "hand.R" | "hand.L" | "head" | "back";
   create(): THREE.Group;
 }
 
@@ -22,6 +29,12 @@ const createEmptyHead = (): THREE.Group => {
 };
 
 export const EQUIPMENT_VISUALS: Readonly<Record<string, EquipmentVisual>> = {
+  ...Object.fromEntries(Object.entries(DISTINCT_WEAPON_FACTORIES).map(([itemId, create]) =>
+    [itemId, { itemId, slot: "weapon" as const, create }])),
+  ...Object.fromEntries(Object.entries(DISTINCT_HEAD_FACTORIES).map(([itemId, create]) =>
+    [itemId, { itemId, slot: "head" as const, create }])),
+  ...Object.fromEntries(Object.entries(DISTINCT_ACCESSORY_FACTORIES).map(([itemId, create]) =>
+    [itemId, { itemId, slot: "accessory" as const, create, socket: ACCESSORY_SOCKETS[itemId as keyof typeof ACCESSORY_SOCKETS] }])),
   "weapon.training-sword": {
     itemId: "weapon.training-sword",
     slot: "weapon",
@@ -49,7 +62,7 @@ export class EquipmentRenderer {
   private headSocket!: THREE.Object3D;
   private outfitRootMount!: THREE.Object3D;
   private outfitChestMount!: THREE.Object3D;
-  private readonly activeVisuals: Partial<Record<"weapon" | "head", THREE.Group>> = {};
+  private readonly activeVisuals: Partial<Record<AttachedSlot, THREE.Group>> = {};
   private readonly activeItemIds: Partial<Record<EquipmentSlot, string | null>> = {};
   private disposed = false;
 
@@ -65,6 +78,10 @@ export class EquipmentRenderer {
   public sync(profile: CharacterProfile): void {
     this.syncAttachedVisual("weapon", profile.equipped.weapon, this.handSocket);
     this.syncAttachedVisual("head", profile.equipped.head, this.headSocket);
+    const accessoryId = profile.equipped.accessory;
+    const accessorySocket = accessoryId ? EQUIPMENT_VISUALS[accessoryId]?.socket : undefined;
+    this.syncAttachedVisual("accessory", accessoryId,
+      this.avatar.userData.sculptRuntime.sockets[accessorySocket ?? "back"]);
     this.syncOutfit(profile.equipped.outfit);
   }
 
@@ -72,7 +89,7 @@ export class EquipmentRenderer {
     return this.activeItemIds[slot] ?? null;
   }
 
-  public getActiveVisual(slot: "weapon" | "head"): THREE.Group | null {
+  public getActiveVisual(slot: AttachedSlot): THREE.Group | null {
     return this.activeVisuals[slot] ?? null;
   }
 
@@ -80,13 +97,14 @@ export class EquipmentRenderer {
     this.disposed = true;
     this.clearAttachedVisual("weapon");
     this.clearAttachedVisual("head");
+    this.clearAttachedVisual("accessory");
     clearMount(this.outfitRootMount);
     clearMount(this.outfitChestMount);
     this.activeItemIds.outfit = null;
   }
 
   private syncAttachedVisual(
-    slot: "weapon" | "head",
+    slot: AttachedSlot,
     itemId: string | null,
     socket: THREE.Object3D,
   ): void {
@@ -99,19 +117,12 @@ export class EquipmentRenderer {
     if (!definition || definition.slot !== slot) return;
     const visual = definition.create();
     visual.userData.itemId = itemId;
-    if (slot === "weapon") {
-      visual.rotation.set(0.08, 0, this.avatar.userData.assetSource === "blender-glb" ? 0 : Math.PI);
-      visual.position.set(0, -0.15, 0.08);
-    } else if (itemId === "head.starter-cap" && this.avatar.userData.assetSource === "blender-glb") {
-      // GLB의 head 소켓은 절차형 머리보다 위에 있으므로 낮고 약간 작게 맞춘다.
-      visual.position.set(0, -0.3, 0);
-      visual.scale.setScalar(0.9);
-    }
+    this.fitAttachedVisual(slot, visual);
     socket.add(visual);
     this.activeVisuals[slot] = visual;
   }
 
-  private clearAttachedVisual(slot: "weapon" | "head"): void {
+  private clearAttachedVisual(slot: AttachedSlot): void {
     const visual = this.activeVisuals[slot];
     if (!visual) return;
     visual.removeFromParent();
@@ -144,14 +155,28 @@ export class EquipmentRenderer {
     this.headSocket = runtime.sockets.head;
     this.outfitRootMount = requiredNode(runtime.nodes, "outfit.mount.root");
     this.outfitChestMount = requiredNode(runtime.nodes, "outfit.mount.chest");
+    // Runtime upgrades preserve the attachment objects. Refit them here so loading order
+    // cannot change a hat's scale or a left-hand accessory's orientation.
+    for (const slot of ["weapon", "head", "accessory"] as const) {
+      const visual = this.activeVisuals[slot];
+      if (visual) this.fitAttachedVisual(slot, visual);
+    }
   }
-}
 
-function isAvatarOutfitId(itemId: string | null): itemId is AvatarOutfitId {
-  return itemId === "outfit.warrior-starter"
-    || itemId === "outfit.mage-starter"
-    || itemId === "outfit.ranger-starter"
-    || itemId === "outfit.traveler";
+  private fitAttachedVisual(slot: AttachedSlot, visual: THREE.Group): void {
+    const imported = this.avatar.userData.assetSource === "blender-glb";
+    if (slot === "weapon") {
+      visual.rotation.set(0.08, 0, imported ? 0 : Math.PI);
+      visual.position.set(0, -0.15, 0.08);
+    } else if (slot === "head") {
+      visual.position.set(0, 0, 0);
+      visual.scale.setScalar(imported ? 1.1 : 1);
+    } else if (visual.userData.attachment?.socket === "hand.L") {
+      // Imported hand bones point down and their +Z faces backward. Flip both axes
+      // so a shield's decorated face remains forward and lanterns hang below the hand.
+      visual.rotation.set(imported ? Math.PI : 0, 0, 0);
+    }
+  }
 }
 
 function requiredNode(nodes: Readonly<Record<string, THREE.Object3D>>, name: string): THREE.Object3D {

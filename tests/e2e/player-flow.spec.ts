@@ -43,6 +43,7 @@ test("전사 생성부터 장비 교체, 공격, 저장 복원까지 이어진�
   await expect(page.locator("[data-item-id='weapon.moon-sword']")).toHaveAttribute("aria-pressed", "true");
   await expect(page.locator("[data-item-id='outfit.traveler']")).toHaveAttribute("aria-pressed", "true");
   await expect(page.locator("[data-item-id='head.starter-cap']")).toHaveAttribute("aria-pressed", "true");
+  await page.locator("[data-apply]").click();
   await page.keyboard.press("Escape");
 
   await page.keyboard.down("KeyW");

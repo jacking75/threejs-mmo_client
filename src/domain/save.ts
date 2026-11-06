@@ -1,4 +1,4 @@
-import { getItemDefinition } from "./catalog";
+import { getItemDefinition, NEW_ITEM_IDS } from "./catalog";
 import {
   BODY_PRESENTATIONS,
   CHARACTER_CLASSES,
@@ -34,7 +34,7 @@ function readEquipped(value: unknown, ownedItemIds: readonly string[]): Equipped
   const equipped = {} as Record<(typeof EQUIPMENT_SLOTS)[number], string | null>;
   for (const slot of EQUIPMENT_SLOTS) {
     const itemId = value[slot];
-    if (itemId === null) {
+    if (itemId === null || (slot === "accessory" && !Object.hasOwn(value, slot))) {
       equipped[slot] = null;
       continue;
     }
@@ -71,7 +71,7 @@ export function restoreProfile(serialized: string | null): CharacterProfile | nu
       name: nameResult.name,
       body: value.body,
       classId: value.classId,
-      ownedItemIds: [...value.ownedItemIds],
+      ownedItemIds: [...new Set([...value.ownedItemIds, "accessory.none", ...NEW_ITEM_IDS])],
       equipped,
     };
   } catch {

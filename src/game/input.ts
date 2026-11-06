@@ -1,3 +1,5 @@
+import { isGameKey, POINTER_DRAG_THRESHOLD_SQ } from "./inputGuards";
+
 export interface MovementInputSnapshot {
   readonly forward: number;
   readonly right: number;
@@ -8,7 +10,6 @@ const MOVEMENT_CODES = new Set(["KeyW", "KeyA", "KeyS", "KeyD", "ShiftLeft", "Sh
 
 export class MovementInput {
   private readonly pressed = new Set<string>();
-  private readonly releaseFrameIds = new Map<string, number>();
   private connected = false;
   private enabled = true;
 
@@ -17,6 +18,7 @@ export class MovementInput {
     window.addEventListener("keydown", this.handleKeyDown);
     window.addEventListener("keyup", this.handleKeyUp);
     window.addEventListener("blur", this.handleBlur);
+    document.addEventListener("visibilitychange", this.handleVisibilityChange);
     this.connected = true;
   }
 
@@ -25,8 +27,7 @@ export class MovementInput {
     window.removeEventListener("keydown", this.handleKeyDown);
     window.removeEventListener("keyup", this.handleKeyUp);
     window.removeEventListener("blur", this.handleBlur);
-    this.releaseFrameIds.forEach((frameId) => cancelAnimationFrame(frameId));
-    this.releaseFrameIds.clear();
+    document.removeEventListener("visibilitychange", this.handleVisibilityChange);
     this.pressed.clear();
     this.connected = false;
   }
@@ -46,39 +47,25 @@ export class MovementInput {
   }
 
   public reset(): void {
-    this.releaseFrameIds.forEach((frameId) => cancelAnimationFrame(frameId));
-    this.releaseFrameIds.clear();
     this.pressed.clear();
   }
 
   private readonly handleKeyDown = (event: KeyboardEvent): void => {
-    if (!MOVEMENT_CODES.has(event.code)) return;
+    if (!MOVEMENT_CODES.has(event.code) || !this.enabled || !isGameKey(event)) return;
     event.preventDefault();
-    if (!this.enabled) return;
-    const releaseFrameId = this.releaseFrameIds.get(event.code);
-    if (releaseFrameId !== undefined) cancelAnimationFrame(releaseFrameId);
-    this.releaseFrameIds.delete(event.code);
     this.pressed.add(event.code);
   };
 
   private readonly handleKeyUp = (event: KeyboardEvent): void => {
     if (!MOVEMENT_CODES.has(event.code)) return;
-    event.preventDefault();
-    const previousFrameId = this.releaseFrameIds.get(event.code);
-    if (previousFrameId !== undefined) cancelAnimationFrame(previousFrameId);
-    const frameId = requestAnimationFrame(() => {
-      this.pressed.delete(event.code);
-      this.releaseFrameIds.delete(event.code);
-    });
-    this.releaseFrameIds.set(event.code, frameId);
+    this.pressed.delete(event.code);
   };
 
   private readonly handleBlur = (): void => {
     this.reset();
   };
+  private readonly handleVisibilityChange = (): void => { if (document.hidden) this.reset(); };
 }
-
-const CLICK_DRAG_THRESHOLD_SQ = 36;
 
 export class AttackInput {
   private inputElement: HTMLElement | null = null;
@@ -93,19 +80,25 @@ export class AttackInput {
     this.disconnect();
     this.inputElement = element;
     window.addEventListener("keydown", this.handleKeyDown);
+    window.addEventListener("blur", this.handleBlur);
+    document.addEventListener("visibilitychange", this.handleVisibilityChange);
     element.addEventListener("pointerdown", this.handlePointerDown);
     element.addEventListener("pointermove", this.handlePointerMove);
     element.addEventListener("pointerup", this.handlePointerUp);
     element.addEventListener("pointercancel", this.handlePointerCancel);
+    element.addEventListener("lostpointercapture", this.handlePointerCancel);
   }
 
   public disconnect(): void {
     window.removeEventListener("keydown", this.handleKeyDown);
+    window.removeEventListener("blur", this.handleBlur);
+    document.removeEventListener("visibilitychange", this.handleVisibilityChange);
     if (this.inputElement) {
       this.inputElement.removeEventListener("pointerdown", this.handlePointerDown);
       this.inputElement.removeEventListener("pointermove", this.handlePointerMove);
       this.inputElement.removeEventListener("pointerup", this.handlePointerUp);
       this.inputElement.removeEventListener("pointercancel", this.handlePointerCancel);
+      this.inputElement.removeEventListener("lostpointercapture", this.handlePointerCancel);
     }
     this.inputElement = null;
     this.reset();
@@ -115,6 +108,10 @@ export class AttackInput {
     const requested = this.requested;
     this.requested = false;
     return requested;
+  }
+
+  public requestAttack(): void {
+    if (this.enabled) this.requested = true;
   }
 
   public setEnabled(enabled: boolean): void {
@@ -129,13 +126,13 @@ export class AttackInput {
   }
 
   private readonly handleKeyDown = (event: KeyboardEvent): void => {
-    if (event.code !== "KeyF") return;
+    if (event.code !== "KeyF" || !this.enabled || !isGameKey(event)) return;
     event.preventDefault();
     if (this.enabled && !event.repeat) this.requested = true;
   };
 
   private readonly handlePointerDown = (event: PointerEvent): void => {
-    if (!this.enabled || event.button !== 0) return;
+    if (!this.enabled || event.button !== 0 || this.pointerId !== null) return;
     this.pointerId = event.pointerId;
     this.pointerStartX = event.clientX;
     this.pointerStartY = event.clientY;
@@ -151,11 +148,14 @@ export class AttackInput {
 
   private readonly handlePointerUp = (event: PointerEvent): void => {
     if (event.pointerId !== this.pointerId) return;
-    if (this.enabled && this.pointerTravelSq <= CLICK_DRAG_THRESHOLD_SQ) this.requested = true;
+    this.handlePointerMove(event);
+    if (this.enabled && event.button === 0 && this.pointerTravelSq <= POINTER_DRAG_THRESHOLD_SQ) this.requested = true;
     this.pointerId = null;
   };
 
   private readonly handlePointerCancel = (event: PointerEvent): void => {
     if (event.pointerId === this.pointerId) this.pointerId = null;
   };
+  private readonly handleBlur = (): void => { this.reset(); };
+  private readonly handleVisibilityChange = (): void => { if (document.hidden) this.reset(); };
 }

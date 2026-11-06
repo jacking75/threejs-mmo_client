@@ -18,7 +18,7 @@ export function startAssetGallery(): void {
       <header class="brand">
         <p class="eyebrow">IMG2THREEJS · ASSET ATELIER</p>
         <h1>대륙 리소스 도감</h1>
-        <p>동물 208종, 몬스터 96종, 월드 소품 96종을 포함한 절차형 MMORPG 리소스 655종이다.</p>
+        <p>동물 208종, 몬스터 96종, 월드 소품 96종과 플레이어 착용 아이템을 포함한 리소스 ${assetCatalog.length}종이다.</p>
       </header>
       <div class="viewport-wrap">
         <canvas class="viewport" aria-label="선택한 3D 리소스 미리보기"></canvas>
@@ -126,5 +126,4 @@ export function startAssetGallery(): void {
 
   renderList(avatarAssets);
   window.addEventListener("beforeunload", () => viewport.dispose(), { once: true });
-  if (assetCatalog.length !== 655) throw new Error("Asset catalog count is out of sync");
 }

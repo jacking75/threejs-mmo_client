@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { CLASS_CATALOG, ITEM_CATALOG } from "../../src/domain/catalog";
 import { createDefaultProfile, validateCharacterName } from "../../src/domain/character";
-import { equipOwnedItem } from "../../src/domain/equipment";
+import { equipOwnedItem, equipOwnedItems } from "../../src/domain/equipment";
 
 describe("character profile", () => {
   it.each([
@@ -15,6 +15,7 @@ describe("character profile", () => {
       weapon: "weapon.training-sword",
       outfit: outfitId,
       head: "head.none",
+      accessory: null,
     });
     expect(profile.ownedItemIds).toEqual(expect.arrayContaining([
       "weapon.training-sword",
@@ -41,6 +42,16 @@ describe("character profile", () => {
 });
 
 describe("equipOwnedItem", () => {
+  it("validates a complete loadout atomically without changing the original profile", () => {
+    const profile = createDefaultProfile({ name: "루나", body: "feminine", classId: "mage" });
+    const failed = equipOwnedItems(profile, ["weapon.moon-sword", "outfit.warrior-starter"]);
+    expect(failed).toEqual({ ok: false, profile, reason: "item-not-owned" });
+    expect(failed.profile.equipped.weapon).toBe("weapon.training-sword");
+    const success = equipOwnedItems(profile, ["weapon.moon-sword", "outfit.traveler", "head.starter-cap"]);
+    expect(success.ok).toBe(true);
+    expect(success.profile.equipped).toEqual({ weapon: "weapon.moon-sword", outfit: "outfit.traveler", head: "head.starter-cap", accessory: null });
+    expect(profile.equipped.weapon).toBe("weapon.training-sword");
+  });
   it("rejects an item the character does not own", () => {
     const profile = createDefaultProfile({ name: "루나", body: "feminine", classId: "mage" });
     const result = equipOwnedItem(profile, "outfit.warrior-starter");
@@ -58,6 +69,7 @@ describe("equipOwnedItem", () => {
       weapon: "weapon.moon-sword",
       outfit: "outfit.warrior-starter",
       head: "head.none",
+      accessory: null,
     });
     expect(profile.equipped.weapon).toBe("weapon.training-sword");
   });
@@ -71,6 +83,7 @@ describe("equipOwnedItem", () => {
       weapon: "weapon.training-sword",
       outfit: "outfit.traveler",
       head: "head.none",
+      accessory: null,
     });
 
     const headResult = equipOwnedItem(outfitResult.profile, "head.starter-cap");

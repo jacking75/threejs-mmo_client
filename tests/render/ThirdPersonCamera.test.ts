@@ -8,6 +8,62 @@ import {
 } from "../../src/render/ThirdPersonCamera";
 
 describe("ThirdPersonCamera", () => {
+  it("keeps the intended orbit direction while following through camera obstructions", () => {
+    const target = new THREE.Object3D();
+    const clearCamera = new THREE.PerspectiveCamera(), blockedCamera = new THREE.PerspectiveCamera();
+    const clear = new ThirdPersonCamera(clearCamera, target);
+    const obstacles = [{ x: -1, y: 2.4, z: -4, radius: 2.5 }];
+    const blocked = new ThirdPersonCamera(blockedCamera, target, 1.35, undefined, obstacles);
+    const lookAt = new THREE.Vector3();
+    let wasShortened = false;
+    for (let frame = 0; frame < 100; frame += 1) {
+      target.position.set(Math.sin(frame * 0.05) * 2, 0, frame * 0.04);
+      clear.update(1 / 30);
+      blocked.update(1 / 30);
+      lookAt.copy(target.position).y += 1.35;
+      const freeDirection = clearCamera.position.clone().sub(lookAt);
+      const blockedDirection = blockedCamera.position.clone().sub(lookAt);
+      if (blockedDirection.length() < freeDirection.length() - 1) wasShortened = true;
+      expect(freeDirection.normalize().dot(blockedDirection.normalize())).toBeCloseTo(1, 6);
+    }
+    expect(wasShortened).toBe(true);
+  });
+
+  it("moves in front of an obstructing tree and restores the orbit after it clears", () => {
+    const target = new THREE.Object3D();
+    const camera = new THREE.PerspectiveCamera();
+    const obstacles: { x: number; y: number; z: number; radius: number }[] = [];
+    const controller = new ThirdPersonCamera(camera, target, 1.25, () => 0, obstacles);
+    controller.update(0);
+    const lookAt = new THREE.Vector3(0, 1.25, 0);
+    const center = lookAt.clone().lerp(camera.position, 0.6);
+    obstacles.push({ x: center.x, y: center.y, z: center.z, radius: 1.1 });
+    controller.update(1 / 60);
+    expect(camera.position.distanceTo(lookAt)).toBeLessThan(4.5);
+    obstacles.length = 0;
+    controller.update(1);
+    expect(camera.position.distanceTo(lookAt)).toBeCloseTo(DEFAULT_CAMERA_DISTANCE, 2);
+  });
+
+  it("keeps the camera and its sight line above rising terrain during low orbits and follow", () => {
+    const height = (x: number, z: number): number => 0.55 * Math.hypot(x, z);
+    const target = new THREE.Object3D();
+    const camera = new THREE.PerspectiveCamera();
+    const controller = new ThirdPersonCamera(camera, target, 1.25, height);
+    controller.rotate(0, -1000);
+    controller.zoom(100);
+    for (let frame = 0; frame < 60; frame += 1) {
+      target.position.set(frame * 0.15, height(frame * 0.15, 0), 0);
+      controller.rotate(5, 0);
+      controller.update(1 / 60);
+      const lookAt = target.position.clone().add(new THREE.Vector3(0, 1.25, 0));
+      for (let step = 1; step <= 16; step += 1) {
+        const sample = lookAt.clone().lerp(camera.position, step / 16);
+        expect(sample.y).toBeGreaterThanOrEqual(height(sample.x, sample.z) + 0.64999);
+      }
+    }
+  });
+
   it("keeps a stable orbit distance and looks at the target", () => {
     const target = new THREE.Object3D();
     const camera = new THREE.PerspectiveCamera();

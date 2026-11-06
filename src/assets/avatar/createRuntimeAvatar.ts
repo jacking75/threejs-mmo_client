@@ -3,7 +3,8 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import type { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 import type { AvatarGroup, AvatarOptions, SculptRuntime } from "../types";
 import { adaptImportedAvatar } from "./AvatarAdapter";
-import { createAnimeAvatar } from "./createAnimeAvatar";
+import { createAnimeAvatar, createAvatarOutfitVisual } from "./createAnimeAvatar";
+import { isAvatarOutfitId } from "../types";
 
 const FEMALE_WARRIOR_GLB = import.meta.env.VITE_STANDALONE_GLB
   || `${import.meta.env.BASE_URL}assets/characters/female-warrior.glb`;
@@ -37,7 +38,16 @@ export function createRuntimeAvatar(
 }
 
 export function applyImportedOutfit(avatar: AvatarGroup, outfitId: string): boolean {
-  if (avatar.userData.assetSource !== "blender-glb") return false;
+  if (avatar.userData.assetSource !== "blender-glb" || !isAvatarOutfitId(outfitId)) return false;
+  const { nodes } = avatar.userData.sculptRuntime;
+  const rootMount = nodes["outfit.mount.root"];
+  const chestMount = nodes["outfit.mount.chest"];
+  for (const mount of [rootMount, chestMount]) {
+    for (const child of [...mount.children]) {
+      child.removeFromParent();
+      disposeObject(child);
+    }
+  }
   let matched = false;
   avatar.traverse((node) => {
     const nodeOutfitId = getImportedOutfitId(node);
@@ -45,7 +55,15 @@ export function applyImportedOutfit(avatar: AvatarGroup, outfitId: string): bool
     node.visible = nodeOutfitId === outfitId;
     matched ||= node.visible;
   });
-  return matched;
+  if (!matched) {
+    const visual = createAvatarOutfitVisual(outfitId, avatar.userData.avatarOptions.body);
+    // The imported chest bone sits at Y=2.68, while garment patterns use the
+    // canonical procedural chest origin Y=3.15. Keep shoulders at the same height.
+    visual.chest.position.y = 0.47;
+    rootMount.add(visual.root);
+    chestMount.add(visual.chest);
+  }
+  return true;
 }
 
 async function upgradeToFemaleWarriorGlb(
@@ -91,8 +109,8 @@ async function upgradeToFemaleWarriorGlb(
       object.position.set(0, -0.15, 0.08);
     }
     if (socket === "head" && object.name === "head.starter-cap") {
-      object.position.set(0, -0.3, 0);
-      object.scale.setScalar(0.9);
+      object.position.set(0, 0, 0);
+      object.scale.setScalar(1.1);
     }
     adapted.runtime.sockets[socket].add(object);
   });

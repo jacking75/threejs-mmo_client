@@ -9,7 +9,7 @@ test("리소스 선택부터 fake ACP 승인·HMR·검증까지 한 화면에서
   await page.goto("/?mode=editor");
   await expect(page.getByTestId("resource-editor")).toBeVisible();
   await expect(page.getByText("절차형 리소스 편집 작업대")).toBeVisible();
-  await expect(page.locator(".re-asset-row")).toHaveCount(655);
+  await expect(page.locator(".re-asset-row")).toHaveCount(685);
   const health = await page.evaluate(async () => fetch("/api/resource-editor/health").then((response) => response.json())) as { protocol: string; fakeAgent: boolean };
   const unauthorized = await request.post("/api/resource-editor/captures", { data: {} });
   expect({ health, unauthorizedStatus: unauthorized.status() }).toMatchObject({ health: { protocol: "ACP v1", fakeAgent: true }, unauthorizedStatus: 401 });

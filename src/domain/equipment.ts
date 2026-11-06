@@ -22,8 +22,19 @@ export function equipOwnedItem(profile: CharacterProfile, itemId: string): Equip
       ...profile,
       equipped: {
         ...profile.equipped,
-        [item.slot]: item.id,
+        [item.slot]: item.id === "accessory.none" ? null : item.id,
       },
     },
   };
+}
+
+/** Validate the complete selection before committing or persisting anything. */
+export function equipOwnedItems(profile: CharacterProfile, itemIds: readonly string[]): EquipItemResult {
+  let next = profile;
+  for (const itemId of itemIds) {
+    const result = equipOwnedItem(next, itemId);
+    if (!result.ok) return { ...result, profile };
+    next = result.profile;
+  }
+  return { ok: true, profile: next };
 }

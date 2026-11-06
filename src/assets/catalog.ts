@@ -7,6 +7,7 @@ import { createMoonSword, createTrainingSword } from "./equipment/createSword";
 import { createFantasyTree, createGrassTuft, createRockCluster, createWaystone } from "./field/createFieldProps";
 import { NPC_RESOURCE_CATALOG } from "./npc";
 import { playerItemResources } from "./player-items";
+import { playableItemAssets } from "./playableItemAssets";
 import type { AssetDefinition, BodyPresentation, CharacterClass } from "./types";
 import { FAUNA_RESOURCE_CATALOG } from "./fauna";
 import { WORLD_PROP_RESOURCE_CATALOG } from "./world-props";
@@ -41,7 +42,7 @@ export const creatureAssets: readonly AssetDefinition[] = CREATURE_RESOURCE_CATA
 
 export const worldPropAssets: readonly AssetDefinition[] = WORLD_PROP_RESOURCE_CATALOG;
 
-export const equipmentAssets: readonly AssetDefinition[] = [...legacyEquipmentAssets, ...playerItemAssets];
+export const equipmentAssets: readonly AssetDefinition[] = [...legacyEquipmentAssets, ...playerItemAssets, ...playableItemAssets];
 
 export const fieldAssets: readonly AssetDefinition[] = [
   { id: "field.fantasy-tree", label: "판타지 나무", category: "field", create: createFantasyTree },

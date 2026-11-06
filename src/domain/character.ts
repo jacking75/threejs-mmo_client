@@ -3,7 +3,7 @@ import { getStartingEquipment, getStartingOwnedItemIds } from "./catalog";
 export const PROFILE_VERSION = 1 as const;
 export const BODY_PRESENTATIONS = ["feminine", "masculine"] as const;
 export const CHARACTER_CLASSES = ["warrior", "mage", "ranger"] as const;
-export const EQUIPMENT_SLOTS = ["weapon", "outfit", "head"] as const;
+export const EQUIPMENT_SLOTS = ["weapon", "outfit", "head", "accessory"] as const;
 
 export type BodyPresentation = (typeof BODY_PRESENTATIONS)[number];
 export type CharacterClass = (typeof CHARACTER_CLASSES)[number];
@@ -13,6 +13,7 @@ export interface EquippedItems {
   readonly weapon: string | null;
   readonly outfit: string | null;
   readonly head: string | null;
+  readonly accessory: string | null;
 }
 
 export interface CharacterProfile {

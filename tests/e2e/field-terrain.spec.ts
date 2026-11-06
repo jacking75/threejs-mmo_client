@@ -1,0 +1,38 @@
+import { expect, test } from "@playwright/test";
+
+test("rolling meadow keeps movement grounded through the valley and inventory pause", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
+  await page.goto("/");
+  await page.locator(".lobby-actions [data-action='create']").click();
+  await page.locator("input[name='characterName']").fill("초원탐험가");
+  await page.locator("button[type='submit']").click();
+  await page.locator("[data-action='enter']").click();
+  const field = page.locator(".field-shell");
+  await expect(field).toHaveAttribute("data-animation", "idle");
+  await page.keyboard.down("Shift");
+  await page.keyboard.down("KeyW");
+  await expect.poll(async () => Number(await field.getAttribute("data-player-y")), { timeout: 8000 }).toBeGreaterThan(0.7);
+  await expect.poll(async () => Number(await field.getAttribute("data-player-y")), { timeout: 15000 }).toBeLessThan(-1.5);
+  await page.keyboard.up("KeyW");
+  await page.keyboard.up("Shift");
+  expect(Number(await field.getAttribute("data-player-z"))).toBeGreaterThan(42);
+  await page.keyboard.press("KeyI");
+  const paused = await field.getAttribute("data-player-y");
+  await page.keyboard.down("KeyW");
+  await page.waitForTimeout(200);
+  await page.keyboard.up("KeyW");
+  expect(await field.getAttribute("data-player-y")).toBe(paused);
+  await page.keyboard.press("Escape");
+  await page.keyboard.press("KeyF");
+  await expect(field).toHaveAttribute("data-attack-count", "1");
+  await page.mouse.move(700, 400);
+  await page.mouse.down();
+  await page.mouse.move(1000, 200, { steps: 12 });
+  await page.mouse.up();
+  await page.mouse.wheel(0, 1000);
+  await page.setViewportSize({ width: 900, height: 650 });
+  await expect(page.locator(".field-canvas")).toBeVisible();
+  expect(errors).toEqual([]);
+});

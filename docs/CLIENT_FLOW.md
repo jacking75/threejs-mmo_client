@@ -6,26 +6,34 @@
 sequenceDiagram
     participant UI as InventoryPanel
     participant Game as GameApp
-    participant Domain as equipOwnedItem
+    participant Domain as equipOwnedItems
     participant Save as ClientApp/saveProfile
     participant Render as EquipmentRenderer
-    UI->>Game: onEquip(itemId)
-    Game->>Domain: profile + itemId
+    UI->>UI: 아이템 선택 → draft + 3D 착장 미리보기
+    UI->>Game: 변경 적용 → onApply(itemIds)
+    Game->>Domain: profile + itemIds (전체 검증)
     Domain-->>Game: 검증된 새 profile 또는 실패
     Game->>Save: onProfileChange(profile)
     Save-->>Game: 저장 성공 여부
     Game->>Render: sync(profile)
     Render->>Render: 이전 장비 dispose / 새 Group 생성
     Render->>Render: hand.R에 부착
-    Game->>UI: 새 profile 표시
+    Game-->>UI: 적용 성공 → draft를 확정 상태로 표시
 ```
 
+미확정 선택은 InventoryPanel의 draft에만 존재한다. 닫으면 draft를 버리고, 적용할 때만 한 번 저장한다.
 정본은 `CharacterProfile`이다. 메시나 DOM의 선택 색을 다시 읽어 장착 상태를 결정하지 않는다.
-저장 실패 시 처리 순서는 `GameApp.handleEquip`를 따라 확인한다. 실패 메시지와 실제 저장 결과를 혼동하지 않는다.
+저장 실패 시 처리 순서는 `GameApp.handleApplyEquipment`를 따라 확인한다. 실패 메시지와 실제 저장 결과를 혼동하지 않는다.
 
 ## 프레임과 상태
 
 `GameApp.renderFrame`은 delta를 최대 0.1초로 제한하고 입력→이동/충돌→애니메이션→카메라→렌더 순으로 실행한다.
+
+이동 키는 keyup에서 즉시 해제하며 blur/숨김 상태에서는 이동·공격·드래그를 취소한다.
+브라우저 단축키·IME·텍스트 편집 입력은 게임 키로 처리하지 않는다. 좌클릭과 카메라 드래그는
+같은 6px 임계값으로 구분하고 우클릭 드래그도 시점 회전을 지원한다. 인벤토리는 필드의
+이동·공격·카메라 입력을 함께 잠근다. 카메라는 원래 추적 위치와 장애물로 당겨진 최종 위치를
+분리해 이동 방향을 유지하고 장애물이 사라지면 거리를 부드럽게 복구한다.
 속도 6m/s라면 한 프레임의 이동 거리는 `6 * deltaSeconds`이다. 프레임당 고정 거리로 이동하면 120fps에서 30fps보다 네 배 빠르게 움직인다.
 `tests/game/frameRate.test.ts`는 실제 이동 함수와 공격 타임라인을 30/60/120fps로 실행한다.
 장시간 탭이 멈췄을 때 이 게임은 경과 시간을 따라잡는 대신 delta 상한으로 순간 이동을 방지한다.

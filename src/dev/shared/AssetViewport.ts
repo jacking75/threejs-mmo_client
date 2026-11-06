@@ -39,6 +39,7 @@ function isCharacterAsset(definition: AssetDefinition): boolean {
 }
 
 function createWearablePreview(definition: AssetDefinition, asset: THREE.Group): THREE.Group {
+  if (asset.userData.fullAvatarPreview === true) return asset;
   if (definition.category !== "outfit" && definition.category !== "head") return asset;
   const display = new THREE.Group();
   display.name = `${definition.id}.display`;

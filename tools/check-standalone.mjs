@@ -36,6 +36,7 @@ try {
   await page.locator('[data-item-id="weapon.moon-sword"]').click();
   await page.locator('[data-item-id="outfit.traveler"]').click();
   await expect(page.locator('[data-item-id="weapon.moon-sword"]')).toHaveAttribute("aria-pressed", "true");
+  await page.locator("[data-apply]").click();
   await page.waitForTimeout(500);
   mkdirSync("docs_working/standalone-check", { recursive: true });
   await page.screenshot({ path: "docs_working/standalone-check/offline-inventory.png" });

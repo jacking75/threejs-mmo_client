@@ -1,15 +1,9 @@
 import * as THREE from "three";
 import { createRuntimeAvatar } from "../assets/avatar/createRuntimeAvatar";
 import type { AvatarGroup, AvatarOutfitId } from "../assets/types";
+import { isAvatarOutfitId } from "../assets/types";
 import type { CharacterProfile } from "../domain/character";
 import type { AnimationState } from "../game/animationState";
-
-const OUTFIT_IDS = new Set<AvatarOutfitId>([
-  "outfit.warrior-starter",
-  "outfit.mage-starter",
-  "outfit.ranger-starter",
-  "outfit.traveler",
-]);
 
 export interface AvatarRendererOptions {
   readonly visualScale?: number;
@@ -250,7 +244,7 @@ function smoothStep(min: number, max: number, value: number): number {
 }
 
 function getAvatarOutfitId(itemId: string | null): AvatarOutfitId | undefined {
-  return itemId && OUTFIT_IDS.has(itemId as AvatarOutfitId) ? itemId as AvatarOutfitId : undefined;
+  return isAvatarOutfitId(itemId) ? itemId : undefined;
 }
 
 function requiredNode(nodes: Readonly<Record<string, THREE.Object3D>>, name: string): THREE.Object3D {
